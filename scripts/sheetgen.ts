@@ -5,8 +5,7 @@
  *                 <screenshot> <screenshot>
  *
  * One screenshot of the Moves & More tab and one of the Stats tab, in
- * either order. For now this prints which file shows which tab, and every
- * field read on it.
+ * either order. Prints the team it reads.
  *
  * --debug       Also print everything that was worked out about the
  *               screenshots, as JSON, to stderr. Pixel data is summarized
@@ -20,8 +19,8 @@
  */
 import path from 'node:path';
 import { readTeam } from '../src/core/ocr/pipeline';
-import { filledCards, screenTitle } from '../src/core/ocr/screens';
 import { formatScreenshotProblem } from '../src/core/screenshot-problems';
+import { formatTeam } from '../src/core/team/format';
 import { parseArguments, readFiles } from '../src/node/cli';
 import { saveFieldCrops } from '../src/node/debug';
 import { decodeImage } from '../src/node/image';
@@ -71,10 +70,9 @@ if (fileErrors.length > 0) {
 }
 
 // Step 3: Start the text recognizer (Tesseract), work out what's in the
-// screenshots, and read their text. The recognizer keeps running in the
-// background, so it's shut down as soon as reading is done, or Node won't
-// exit.
-// TODO: Put the team together too.
+// screenshots, read their text, and put the team together. The recognizer
+// keeps running in the background, so it's shut down as soon as reading is
+// done, or Node won't exit.
 const engine = await createNodeEngine();
 let result;
 
@@ -85,7 +83,7 @@ try {
   clearProgress();
 }
 
-const { screens, reads, problems } = result;
+const { screens, team, problems } = result;
 
 // With --debug, print everything that was worked out. This happens before
 // anything can stop the script, so it's there for failed runs too.
@@ -117,25 +115,10 @@ if (problems.length > 0) {
   process.exit(1);
 }
 
-// Step 5: Show what was found. For now that's which file shows which tab,
-// and every field read on it, by name; a blank field shows as "–".
-// TODO: Print the team instead, marking any values that might have been
-// misread.
-for (const kind of ['moves', 'stats'] as const) {
-  const screen = screens[kind];
-
-  if (!screen) continue;
-
-  const pokemon = filledCards(screen).length;
-
-  logger.info(
-    `${screenTitle(kind)}: ${screen.name} (layout ${screen.layout}, ${pokemon} Pokémon)`,
-  );
-
-  for (const { key, value } of reads[kind] ?? []) {
-    logger.info(`  ${key.padEnd(18)} ${value ?? '–'}`);
-  }
-}
+// Step 5: Show the team. With --debug, every field's reading was printed
+// above too.
+// TODO: Mark any values that might have been misread.
+if (team) logger.info(formatTeam(team));
 
 // TODO: Ask before saving the team list, unless --yes was given.
 
