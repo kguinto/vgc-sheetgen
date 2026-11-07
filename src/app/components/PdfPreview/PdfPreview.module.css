@@ -1,0 +1,17 @@
+.frame {
+  display: block;
+  width: 100%;
+  height: min(80vh, 1000px);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--color-bg);
+}
+
+.unsupported {
+  margin: 0;
+  padding: 24px;
+  text-align: center;
+  color: var(--color-muted);
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+}

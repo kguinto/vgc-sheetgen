@@ -1,0 +1,29 @@
+.message {
+  margin: 16px 0;
+}
+
+/* Things to check on the printed form. */
+.warnings {
+  margin: 0 0 var(--gap);
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+}
+
+.warnings p,
+.warnings ul {
+  margin: 0;
+}
+
+.warnings ul {
+  margin-top: 4px;
+  padding-left: 1.25em;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 var(--gap);
+}

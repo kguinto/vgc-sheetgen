@@ -13,7 +13,7 @@ import {
   SCREENSHOTS_NEEDED,
   ScreenshotsPage,
 } from './pages/ScreenshotsPage/ScreenshotsPage';
-import { TeamListPage } from './pages/TeamListPage/TeamListPage';
+import { TeamsheetPage } from './pages/TeamsheetPage/TeamsheetPage';
 
 /** The app's steps, in the order you go through them. */
 const STEP_NAMES = ['Screenshots', 'Review', 'Teamsheet'];
@@ -81,7 +81,7 @@ export function App() {
           onChangeScreenshots={() => setPage(0)}
         />
       )}
-      {page === 2 && <TeamListPage />}
+      {page === 2 && team && <TeamsheetPage team={team} player={player} />}
     </PageLayout>
   );
 }
