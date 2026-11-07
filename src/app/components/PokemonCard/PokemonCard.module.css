@@ -21,39 +21,32 @@
   align-items: start;
 }
 
-.details {
+.column {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  min-width: 0;
   margin: 0;
+  padding: 0;
+  border: none;
 }
 
-/* Each label sits above its value, so the value gets the column's full
-   width and names like "Lightning Rod" don't wrap. */
-.row dt {
+/* A label above its input. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.label {
+  padding: 0;
   color: var(--color-muted);
   font-size: 0.8rem;
 }
 
-.stat dt {
-  color: var(--color-muted);
-  white-space: nowrap;
-}
-
-.row dd,
-.stat dd {
-  margin: 0;
-  min-width: 0;
-  overflow-wrap: break-word;
-}
-
-.moveList {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.input {
+  width: 100%;
 }
 
 /* Like the Stats card: HP, Atk, and Def on the left; SpA, SpD, and Spe on
@@ -63,22 +56,26 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   grid-template-rows: repeat(3, auto);
   grid-auto-flow: column;
-  gap: 4px 24px;
-  margin: 0;
+  gap: 6px 24px;
 }
 
 .stat {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
 
-/* Numbers right-aligned, with every digit the same width, so they line up. */
-.stat dd {
-  font-variant-numeric: tabular-nums;
-  text-align: right;
+.statName {
+  color: var(--color-muted);
+  white-space: nowrap;
 }
 
-.blank {
-  color: var(--color-muted);
+/* Stats: right-aligned, with every digit the same width, so they line up. */
+.number {
+  width: 5ch;
+  flex: none;
+  box-sizing: content-box;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
