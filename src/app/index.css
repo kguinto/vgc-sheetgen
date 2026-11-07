@@ -108,8 +108,6 @@ body {
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-body);
-  /* Digits all the same width, so numbers line up in columns. */
-  font-variant-numeric: tabular-nums;
 }
 
 /* Fills the window, so the footer sits at the bottom of short pages. */

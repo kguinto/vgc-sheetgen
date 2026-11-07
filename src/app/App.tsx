@@ -3,17 +3,14 @@ import { PageLayout } from './components/PageLayout/PageLayout';
 import { StepIndicator } from './components/StepIndicator/StepIndicator';
 import { StepNav } from './components/StepNav/StepNav';
 import { ReviewPage } from './pages/ReviewPage/ReviewPage';
-import { ScreenshotsPage } from './pages/ScreenshotsPage/ScreenshotsPage';
+import {
+  SCREENSHOTS_NEEDED,
+  ScreenshotsPage,
+} from './pages/ScreenshotsPage/ScreenshotsPage';
 import { TeamListPage } from './pages/TeamListPage/TeamListPage';
 
-/** The app's pages, in the order you go through them. */
-const PAGES = [
-  { name: 'Screenshots', Page: ScreenshotsPage },
-  { name: 'Review', Page: ReviewPage },
-  { name: 'Team list', Page: TeamListPage },
-];
-
-const STEP_NAMES = PAGES.map((p) => p.name);
+/** The app's steps, in the order you go through them. */
+const STEP_NAMES = ['Screenshots', 'Review', 'Team list'];
 
 /**
  * The whole app: three pages, one after the other. Add the two screenshots,
@@ -21,7 +18,12 @@ const STEP_NAMES = PAGES.map((p) => p.name);
  */
 export function App() {
   const [page, setPage] = useState(0);
-  const { Page } = PAGES[page]!;
+  // Kept here rather than on their page, so they're still there after going
+  // on to the next step and coming back.
+  const [screenshots, setScreenshots] = useState<File[]>([]);
+
+  // Each step needs what the one before it produced.
+  const canContinue = page !== 0 || screenshots.length === SCREENSHOTS_NEEDED;
 
   return (
     <PageLayout
@@ -31,11 +33,18 @@ export function App() {
       bottom={
         <StepNav
           onBack={page > 0 ? () => setPage(page - 1) : undefined}
-          onNext={page < PAGES.length - 1 ? () => setPage(page + 1) : undefined}
+          onNext={
+            page < STEP_NAMES.length - 1 ? () => setPage(page + 1) : undefined
+          }
+          canContinue={canContinue}
         />
       }
     >
-      <Page />
+      {page === 0 && (
+        <ScreenshotsPage screenshots={screenshots} onChange={setScreenshots} />
+      )}
+      {page === 1 && <ReviewPage />}
+      {page === 2 && <TeamListPage />}
     </PageLayout>
   );
 }
