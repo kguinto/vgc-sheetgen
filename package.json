@@ -13,7 +13,8 @@
     "typecheck": "tsc -b",
     "lint": "oxlint && oxfmt --check",
     "lint:fix": "oxlint --fix && oxfmt --write",
-    "sheetgen": "tsx scripts/sheetgen.ts"
+    "sheetgen": "tsx scripts/sheetgen.ts",
+    "accuracy": "tsx scripts/accuracy.ts"
   },
   "devEngines": {
     "packageManager": {

@@ -4,8 +4,8 @@
  *   pnpm sheetgen [--debug] [--log <file>] <screenshot> <screenshot>
  *
  * One screenshot of the Moves & More tab and one of the Stats tab, in
- * either order. For now this prints which file shows which tab, and how
- * many Pokémon each has.
+ * either order. For now this prints which file shows which tab, and every
+ * field read on it.
  *
  * --debug       Also print everything that was worked out about the
  *               screenshots, as JSON, to stderr. Pixel data is summarized
@@ -18,6 +18,7 @@ import { filledCards, screenTitle } from '../src/core/ocr/screens';
 import { formatScreenshotProblem } from '../src/core/screenshot-problems';
 import { parseArguments, readFiles } from '../src/node/cli';
 import { decodeImage } from '../src/node/image';
+import { createNodeEngine } from '../src/node/tesseract';
 import { createLogger } from '../src/node/logger';
 
 const USAGE =
@@ -60,14 +61,22 @@ if (fileErrors.length > 0) {
   process.exit(1);
 }
 
-// TODO: Start the text recognizer (Tesseract) here. It keeps running in the
-// background, so it has to be shut down at the end or the script won't exit.
+// Step 3: Start the text recognizer (Tesseract), work out what's in the
+// screenshots, and read their text. The recognizer keeps running in the
+// background, so it's shut down as soon as reading is done, or Node won't
+// exit.
+// TODO: Put the team together too.
+const engine = await createNodeEngine();
+let result;
 
-// Step 3: Work out what's in the screenshots. So far this recognizes which
-// tab each one shows and finds each Pokémon's card. Later it will also read
-// the text on each screen and put the team together.
-const result = await readTeam(files, { decodeImage });
-const { screens, problems } = result;
+try {
+  result = await readTeam(files, { decodeImage, engine, onProgress });
+} finally {
+  await engine.terminate();
+  clearProgress();
+}
+
+const { screens, reads, problems } = result;
 
 // With --debug, print everything that was worked out. This happens before
 // anything can stop the script, so it's there for failed runs too.
@@ -81,24 +90,44 @@ if (problems.length > 0) {
 }
 
 // Step 5: Show what was found. For now that's which file shows which tab,
-// the console's screen layout, and how many Pokémon it has, just to show
-// progress.
+// and every field read on it, by name; a blank field shows as "–".
 // TODO: Print the team instead, marking any values that might have been
 // misread.
-for (const screen of [screens.moves, screens.stats]) {
+for (const kind of ['moves', 'stats'] as const) {
+  const screen = screens[kind];
+
   if (!screen) continue;
 
   const pokemon = filledCards(screen).length;
 
   logger.info(
-    `${screenTitle(screen.kind)}: ${screen.name} (layout ${screen.layout}, ${pokemon} Pokémon)`,
+    `${screenTitle(kind)}: ${screen.name} (layout ${screen.layout}, ${pokemon} Pokémon)`,
   );
+
+  for (const { key, value } of reads[kind] ?? []) {
+    logger.info(`  ${key.padEnd(18)} ${value ?? '–'}`);
+  }
 }
 
-// TODO: With --debug, also save a copy of each screenshot with every field
-// outlined, to check that the positions line up.
+// TODO: With --debug, also save each field's cleaned-up crop, to see what
+// the text recognizer was given.
 
 // TODO: Ask before saving the team list, unless --yes was given.
 
 // TODO: Fill in the official team list PDF and save it, to the -o path if
 // given.
+
+/**
+ * Shows how many fields have been read so far, on one line that updates in
+ * place. Only when stderr is a terminal, so it doesn't clutter logs.
+ */
+function onProgress(done: number, total: number) {
+  if (process.stderr.isTTY) {
+    process.stderr.write(`\rReading the text: ${done}/${total}`);
+  }
+}
+
+/** Clears the progress line, so what's printed next starts cleanly. */
+function clearProgress() {
+  if (process.stderr.isTTY) process.stderr.write('\r\x1b[K');
+}

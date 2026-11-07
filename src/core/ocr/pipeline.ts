@@ -1,10 +1,12 @@
 import type { ScreenshotProblem } from '../screenshot-problems';
+import type { OcrEngine } from './engine';
 import type { ImageResult } from './image';
 import {
   inspectScreenshot,
   type InspectResult,
   type RecognizedScreen,
 } from './inspect';
+import { readFields, type FieldResult } from './read';
 import { getScreenPair, type ScreenPair } from './screens';
 
 /** A screenshot file as the user gave it: a name to show, and its contents. */
@@ -17,6 +19,13 @@ export type ReadTeamOptions = {
    * libraries, and the browser has image decoding built in.
    */
   decodeImage(bytes: Uint8Array): Promise<ImageResult>;
+  /**
+   * The text recognizer. Passed in for the same reason: Node and the
+   * browser run it differently. Its calls never overlap (see `OcrEngine`).
+   */
+  engine: OcrEngine;
+  /** Called after each field is read, e.g. to show progress. */
+  onProgress?: (done: number, total: number) => void;
 };
 
 export type ReadTeamResult = {
@@ -25,6 +34,11 @@ export type ReadTeamResult = {
    * may be missing when there are problems.
    */
   screens: ScreenPair;
+  /**
+   * What was read on each screen, field by field. Empty when there were
+   * problems, since nothing is read then.
+   */
+  reads: { moves?: FieldResult[]; stats?: FieldResult[] };
   /** Why some screenshots can't be used, each naming its screenshot. */
   problems: ScreenshotProblem[];
 };
@@ -34,13 +48,13 @@ export type ReadTeamResult = {
  * This is the one function both the command-line script and the web app
  * call, so they behave the same.
  *
- * So far it recognizes which tab each screenshot shows and where the text
- * on it is. Reading the text and putting the team together will be added
- * here.
+ * So far it recognizes which tab each screenshot shows, and reads the text
+ * of every field on both. Putting the team together will be added here.
  *
- * A screenshot that can't be used doesn't stop the others: its problem is
- * returned alongside whatever could be read, and the caller decides what to
- * do. Only a bug throws.
+ * A screenshot that can't be used doesn't stop the others from being
+ * checked: every problem is returned, and the caller decides what to do.
+ * But no text is read when there are problems, so they're reported quickly.
+ * Only a bug throws.
  */
 export async function readTeam(
   screenshots: ScreenshotInput[],
@@ -61,9 +75,33 @@ export async function readTeam(
     unusable: problems.length,
   });
 
-  // TODO: Read the text on each screen and put the team together.
+  const allProblems = [...problems, ...pairProblems];
+  const { moves, stats } = pair;
 
-  return { screens: pair, problems: [...problems, ...pairProblems] };
+  // Both screens are always there when there are no problems; checking
+  // them too just lets the type checker see that.
+  if (allProblems.length > 0 || !moves || !stats) {
+    return { screens: pair, reads: {}, problems: allProblems };
+  }
+
+  // Step 3: Read the text on each screen: Moves & More, then Stats, never
+  // both at once (see `OcrEngine`). Progress counts the fields of both.
+  const total = moves.fields.length + stats.fields.length;
+  const progress = (offset: number) => (done: number) =>
+    options.onProgress?.(offset + done, total);
+
+  const reads = {
+    moves: await readFields(moves, options.engine, progress(0)),
+    stats: await readFields(
+      stats,
+      options.engine,
+      progress(moves.fields.length),
+    ),
+  };
+
+  // TODO: Put the team together from the reads.
+
+  return { screens: pair, reads, problems: [] };
 }
 
 /**
