@@ -31,3 +31,6 @@ coverage
 .vite/
 storybook-static/
 tmp/
+
+# Team lists saved with -o in the repo root
+/*.pdf

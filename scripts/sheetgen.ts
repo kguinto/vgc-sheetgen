@@ -1,12 +1,15 @@
 /**
  * Reads a Battle Team from its two screenshots.
  *
- *   pnpm sheetgen [--debug] [--debug-dir <dir>] [--log <file>]
+ *   pnpm sheetgen [-o <file>] [--debug] [--debug-dir <dir>] [--log <file>]
  *                 <screenshot> <screenshot>
  *
  * One screenshot of the Moves & More tab and one of the Stats tab, in
  * either order. Prints the team it reads.
  *
+ * -o, --output <file>  Also fill in the official team list form with the
+ *               team and save it as a PDF, e.g. `-o team.pdf`. An existing
+ *               file there is replaced.
  * --debug       Also print everything that was worked out about the
  *               screenshots, as JSON, to stderr. Pixel data is summarized
  *               rather than printed.
@@ -17,26 +20,30 @@
  * --log <file>  Also write everything printed to the console to a file,
  *               e.g. `--log run.log`. With --debug, that includes the JSON.
  */
+import fs from 'node:fs';
 import path from 'node:path';
 import { readTeam } from '../src/core/ocr/pipeline';
 import { formatScreenshotProblem } from '../src/core/screenshot-problems';
 import { formatTeam } from '../src/core/team/format';
-import { parseArguments, readFiles } from '../src/node/cli';
+import { renderTeamSheet } from '../src/core/teamsheet/render';
+import { checkOutputPath, parseArguments, readFiles } from '../src/node/cli';
 import { saveFieldCrops } from '../src/node/debug';
 import { decodeImage } from '../src/node/image';
 import { createNodeEngine } from '../src/node/tesseract';
 import { createLogger } from '../src/node/logger';
+import { loadTemplate } from '../src/node/teamsheet';
 
 const USAGE =
-  'Usage: pnpm sheetgen [--debug] [--debug-dir <dir>] [--log <file>] <screenshot> <screenshot>';
+  'Usage: pnpm sheetgen [-o <file>] [--debug] [--debug-dir <dir>] [--log <file>] <screenshot> <screenshot>';
 
 // Step 1: Expect exactly two screenshots, one of the Moves & More tab and
-// one of the Stats tab, in either order, and optionally the debugging and
-// logging flags.
+// one of the Stats tab, in either order, and optionally where to save the
+// team list and the debugging and logging flags.
 const {
   debug,
   debugDir,
   logPath,
+  outputPath,
   paths,
   error: argumentsError,
 } = parseArguments(process.argv.slice(2));
@@ -61,11 +68,13 @@ if (paths.length !== 2) {
 }
 
 // Step 2: Read both files. If either is missing or can't be opened, say so
-// and stop.
+// and stop. With -o, also check now that the team list can be saved there,
+// so a typo in the path doesn't cost a full read of the screenshots.
 const { files, errors: fileErrors } = readFiles(paths);
+const outputError = outputPath ? checkOutputPath(outputPath) : undefined;
 
-if (fileErrors.length > 0) {
-  logger.error(fileErrors.join('\n'));
+if (fileErrors.length > 0 || outputError) {
+  logger.error([...fileErrors, outputError].filter(Boolean).join('\n'));
   process.exit(1);
 }
 
@@ -120,10 +129,32 @@ if (problems.length > 0) {
 // TODO: Mark any values that might have been misread.
 if (team) logger.info(formatTeam(team));
 
-// TODO: Ask before saving the team list, unless --yes was given.
+// Step 6: With -o, fill in the official team list form and save it. Point
+// out anything to check on the printed form, such as a name the form's
+// font can't print.
+// TODO: Once misread values are marked, ask before saving if there are
+// any, unless --yes was given.
+if (team && outputPath) {
+  const { pdf, placements, warnings } = await renderTeamSheet(
+    loadTemplate(),
+    team,
+  );
 
-// TODO: Fill in the official team list PDF and save it, to the -o path if
-// given.
+  logger.debug({ placements });
+
+  for (const warning of warnings) logger.error(warning.message);
+
+  try {
+    fs.writeFileSync(outputPath, pdf);
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException).code;
+
+    logger.error(`${outputPath}: can't save the team list (${code ?? err})`);
+    process.exit(1);
+  }
+
+  logger.info(`Saved the team list to ${outputPath}`);
+}
 
 /**
  * Shows how many fields have been read so far, on one line that updates in

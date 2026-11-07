@@ -3,6 +3,7 @@
 // than exiting, so the script decides when to stop.
 
 import fs from 'node:fs';
+import path from 'node:path';
 import { parseArgs } from 'node:util';
 import type { ScreenshotInput } from '../core/ocr/pipeline';
 
@@ -13,6 +14,8 @@ export type Arguments = {
   logPath?: string;
   /** The --debug-dir folder, if one was given. */
   debugDir?: string;
+  /** Where to save the team list PDF (-o or --output), if anywhere. */
+  outputPath?: string;
   /** The screenshot paths, in the order given. */
   paths: string[];
   /** Node's message if the command line couldn't be read, e.g. an unknown flag. */
@@ -32,6 +35,7 @@ export function parseArguments(argv: string[]): Arguments {
         debug: { type: 'boolean', default: false },
         log: { type: 'string' },
         'debug-dir': { type: 'string' },
+        output: { type: 'string', short: 'o' },
       },
       allowPositionals: true,
     });
@@ -40,6 +44,7 @@ export function parseArguments(argv: string[]): Arguments {
       debug: values.debug,
       logPath: values.log,
       debugDir: values['debug-dir'],
+      outputPath: values.output,
       paths: positionals,
     };
   } catch (err) {
@@ -57,6 +62,25 @@ export type ReadFilesResult = {
   /** One line for each file that couldn't, e.g. "nope.png: no such file". */
   errors: string[];
 };
+
+/**
+ * Checks that the team list can be saved to `outputPath`, before any slow
+ * work is done: its folder must exist and it mustn't be a folder itself.
+ * Returns a message saying what's wrong, or nothing if it looks fine.
+ */
+export function checkOutputPath(outputPath: string): string | undefined {
+  const folder = path.dirname(outputPath);
+
+  if (!fs.existsSync(folder)) {
+    return `${outputPath}: the folder ${folder} doesn't exist`;
+  }
+
+  if (fs.existsSync(outputPath) && fs.statSync(outputPath).isDirectory()) {
+    return `${outputPath}: is a folder; give a file name, e.g. ${path.join(outputPath, 'team.pdf')}`;
+  }
+
+  return undefined;
+}
 
 /** Reads each file into memory, reporting every one that can't be read. */
 export function readFiles(paths: string[]): ReadFilesResult {
