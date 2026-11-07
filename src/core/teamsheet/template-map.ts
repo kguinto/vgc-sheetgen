@@ -6,10 +6,12 @@
 // measured from the bottom-left corner of a US Letter page (612 × 792).
 
 import type { StatKey } from '../team/types';
+import type { AgeDivision } from './player';
 
 /**
- * A box for one line of text. `x` is where the text starts, or where it ends
- * when `align` is `'right'`. `baseline` is the height the letters sit on.
+ * A box for one line of text. `x` is where the text starts, where it ends
+ * when `align` is `'right'`, or its middle when `align` is `'center'`.
+ * `baseline` is the height the letters sit on.
  */
 export type TextSlot = {
   x: number;
@@ -18,7 +20,28 @@ export type TextSlot = {
   maxWidth: number;
   /** The font size to use when the text fits. */
   size: number;
-  align?: 'left' | 'right';
+  align?: 'left' | 'right' | 'center';
+};
+
+/** A point on the page, e.g. the middle of a checkbox. */
+export type Point = { x: number; y: number };
+
+/**
+ * The lines at the top of a page. The staff page asks for everything; the
+ * opponent page leaves out the personal ones (Player ID, date of birth, and
+ * Support ID).
+ */
+export type HeaderMap = {
+  playerName: TextSlot;
+  trainerName: TextSlot;
+  battleTeam: TextSlot;
+  switchProfileName: TextSlot;
+  /** The middle of each age division's checkbox. */
+  ageDivision: Record<AgeDivision, Point>;
+  playerId?: TextSlot;
+  /** The spaces before, between, and after the line's two slashes. */
+  birthDate?: { month: TextSlot; day: TextSlot; year: TextSlot };
+  supportId?: TextSlot;
 };
 
 /** The boxes on one Pokémon's card. */
@@ -34,12 +57,7 @@ export type CardMap = {
 
 /** The boxes on one page of the form. */
 export type PageMap = {
-  /**
-   * The header lines filled in from the screenshots. The rest (player name,
-   * Player ID, date of birth, age division, Switch profile name, Support ID,
-   * and Battle Team number or name) are left for the player to write in.
-   */
-  header: { trainerName: TextSlot };
+  header: HeaderMap;
   /** The six cards, left then right, top to bottom. */
   cards: CardMap[];
 };
@@ -165,27 +183,82 @@ function cards(
   ]);
 }
 
-/**
- * A header value, written just above its underline. The underlines run
- * from x 140.42 to 310.72.
+/*
+ * The header's underlines, measured from the form at 4× resolution. The left
+ * column's run from x 140.25 to 310.75, the right column's (staff page only)
+ * from 432.5 to 591. Values sit just above them.
  */
-function headerSlot(underlineY: number): TextSlot {
+const LEFT_LINE = { x: 140.25, right: 310.75 };
+const RIGHT_LINE = { x: 432.5, right: 591 };
+
+function headerSlot(
+  underlineY: number,
+  line: { x: number; right: number } = LEFT_LINE,
+): TextSlot {
   return {
-    x: 143,
+    x: line.x + 3,
     baseline: underlineY + 2.5,
-    maxWidth: 165,
+    maxWidth: line.right - line.x - 6,
     size: VALUE_SIZE,
+  };
+}
+
+/** A value centered between `left` and `right` on an underline. */
+function centeredSlot(
+  underlineY: number,
+  left: number,
+  right: number,
+): TextSlot {
+  return {
+    x: (left + right) / 2,
+    baseline: underlineY + 2.5,
+    maxWidth: right - left - 6,
+    size: VALUE_SIZE,
+    align: 'center',
+  };
+}
+
+/**
+ * The middles of the Juniors, Seniors, and Masters checkboxes. They sit a
+ * little higher on the opponent page, by `lift`. (Masters' box is drawn
+ * about a point higher than the others.)
+ */
+function ageBoxes(lift: number): Record<AgeDivision, Point> {
+  return {
+    juniors: { x: 477.6, y: 708.9 + lift },
+    seniors: { x: 533.3, y: 709.1 + lift },
+    masters: { x: 582.9, y: 710.3 + lift },
   };
 }
 
 /** Page 1, "For Tournament Staff": the only page with stats. */
 export const STAFF_PAGE: PageMap = {
-  header: { trainerName: headerSlot(680.74) },
+  header: {
+    playerName: headerSlot(702.25),
+    trainerName: headerSlot(680.74),
+    battleTeam: headerSlot(659.5),
+    switchProfileName: headerSlot(635),
+    ageDivision: ageBoxes(0),
+    playerId: headerSlot(680.75, RIGHT_LINE),
+    // The line's slashes are at x 478.5–483.5 and 534.25–539.25.
+    birthDate: {
+      month: centeredSlot(659.5, RIGHT_LINE.x, 478.5),
+      day: centeredSlot(659.5, 483.5, 534.25),
+      year: centeredSlot(659.5, 539.25, RIGHT_LINE.right),
+    },
+    supportId: headerSlot(635, RIGHT_LINE),
+  },
   cards: cards(STAFF_ROWS, STAFF_VALUE_RIGHT, true),
 };
 
-/** Page 2, "For Opponents": no stats. */
+/** Page 2, "For Opponents": no stats, and no personal details. */
 export const OPPONENT_PAGE: PageMap = {
-  header: { trainerName: headerSlot(682.54) },
+  header: {
+    playerName: headerSlot(704),
+    trainerName: headerSlot(682.54),
+    battleTeam: headerSlot(661.25),
+    switchProfileName: headerSlot(636.75),
+    ageDivision: ageBoxes(1.7),
+  },
   cards: cards(OPPONENT_ROWS, OPPONENT_VALUE_RIGHT, false),
 };

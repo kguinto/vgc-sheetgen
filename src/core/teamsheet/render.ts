@@ -9,6 +9,7 @@ import {
 } from 'pdf-lib';
 import { natureFromAlignment, shortStatName } from '../team/natures';
 import { STAT_KEYS, type StatKey, type Team } from '../team/types';
+import { NO_PLAYER_DETAILS, type PlayerDetails } from './player';
 import {
   OPPONENT_PAGE,
   STAFF_PAGE,
@@ -73,16 +74,22 @@ const PAGES: { page: SheetPage; map: PageMap }[] = [
 /** Long text is shrunk to fit its box, but never smaller than this. */
 const MIN_FONT_SIZE = 6;
 
+/** The size of the X marking the age division's checkbox. */
+const MARK_SIZE = 11;
+
 /**
- * Writes the team onto both pages of the form. `template` is the blank form
- * as a PDF file's bytes.
+ * Writes the team onto both pages of the form, with the player's details at
+ * the top where given. `template` is the blank form as a PDF file's bytes.
  *
- * Anything missing from the team, such as an empty card or a stat that
- * wasn't read, is left blank so the player can write it in by hand.
+ * Anything missing, such as an empty card, a stat that wasn't read, or a
+ * detail the player left out, is left blank so it can be written in by hand.
+ * The opponent page has no lines for the personal details (Player ID, date
+ * of birth, and Support ID), so they're only on the staff page.
  */
 export async function renderTeamSheet(
   template: Uint8Array,
   team: Team,
+  player: PlayerDetails = NO_PLAYER_DETAILS,
 ): Promise<RenderResult> {
   const doc = await PDFDocument.load(template);
   const font = await doc.embedFont(StandardFonts.Helvetica);
@@ -123,7 +130,47 @@ export async function renderTeamSheet(
       placements.push({ page, field, text: printable });
     };
 
-    write('trainerName', map.header.trainerName, team.trainerName);
+    const { header } = map;
+
+    write('playerName', header.playerName, player.playerName);
+    write('trainerName', header.trainerName, team.trainerName);
+    write('battleTeam', header.battleTeam, player.battleTeam);
+    write(
+      'switchProfileName',
+      header.switchProfileName,
+      player.switchProfileName,
+    );
+
+    if (header.playerId) write('playerId', header.playerId, player.playerId);
+
+    if (header.birthDate) {
+      const { month, day, year } = player.birthDate;
+
+      write('birthDate.month', header.birthDate.month, month);
+      write('birthDate.day', header.birthDate.day, day);
+      write('birthDate.year', header.birthDate.year, year);
+    }
+
+    if (header.supportId) {
+      write('supportId', header.supportId, player.supportId);
+    }
+
+    // An X in the age division's checkbox.
+    if (player.ageDivision) {
+      const box = header.ageDivision[player.ageDivision];
+      const width = font.widthOfTextAtSize('X', MARK_SIZE);
+
+      pdfPage.drawText('X', {
+        x: box.x - width / 2,
+        // Capital letters are about 0.72 of the font size tall, so this
+        // centers the X's height on the box.
+        y: box.y - MARK_SIZE * 0.36,
+        size: MARK_SIZE,
+        font,
+        color: rgb(0, 0, 0),
+      });
+      placements.push({ page, field: 'ageDivision', text: player.ageDivision });
+    }
 
     for (const [i, card] of map.cards.entries()) {
       const pokemon = team.pokemon[i];
@@ -159,6 +206,13 @@ export async function renderTeamSheet(
     }
   }
 
+  // Named for PDF viewers, which otherwise show the file's name, or a
+  // random ID for one made in the browser.
+  doc.setTitle(
+    team.trainerName ? `Team list: ${team.trainerName}` : 'Team list',
+    { showInWindowTitleBar: true },
+  );
+
   return { pdf: await doc.save(), placements, warnings };
 }
 
@@ -184,7 +238,12 @@ function drawFitted(
   const width = font.widthOfTextAtSize(text, size);
 
   page.drawText(text, {
-    x: slot.align === 'right' ? slot.x - width : slot.x,
+    x:
+      slot.align === 'right'
+        ? slot.x - width
+        : slot.align === 'center'
+          ? slot.x - width / 2
+          : slot.x,
     y: slot.baseline,
     size,
     font,
@@ -214,9 +273,24 @@ function replaceUnprintable(font: PDFFont, text: string): string {
   return out;
 }
 
+/** The header's fields in words, for warnings. */
+const HEADER_NAMES: Record<string, string> = {
+  playerName: 'Player name',
+  trainerName: 'Trainer name',
+  battleTeam: 'Battle Team number or name',
+  switchProfileName: 'Switch profile name',
+  playerId: 'Player ID',
+  'birthDate.month': 'Date of birth (month)',
+  'birthDate.day': 'Date of birth (day)',
+  'birthDate.year': 'Date of birth (year)',
+  supportId: 'Support ID',
+};
+
 /** A field key in words, e.g. `pokemon.1.moves.2` → "Pokémon 2, move 3". */
 function describeField(field: string): string {
-  if (field === 'trainerName') return 'Trainer name';
+  const header = HEADER_NAMES[field];
+
+  if (header) return header;
 
   const [, card, name, sub] = field.split('.');
   const pokemon = `Pokémon ${Number(card) + 1}`;

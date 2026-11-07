@@ -125,7 +125,11 @@ h3 {
   font-weight: 600;
 }
 
-button {
+/* Buttons, and links that look like them (class="button"). */
+button,
+.button {
+  display: inline-block;
+  text-decoration: none;
   font: inherit;
   padding: 6px 18px;
   border-radius: 999px;
@@ -136,11 +140,13 @@ button {
   transition: background-color 150ms;
 }
 
-button:hover:not(:disabled) {
+button:hover:not(:disabled),
+.button:hover {
   background: var(--color-accent-soft);
 }
 
-button:focus-visible {
+button:focus-visible,
+.button:focus-visible {
   outline: 2px solid var(--color-text);
   outline-offset: 2px;
 }
@@ -151,13 +157,15 @@ button:disabled {
 }
 
 /* The main action on a page, e.g. Next or Download PDF. */
-button.primary {
+button.primary,
+.button.primary {
   background: var(--color-accent);
   border-color: var(--color-accent);
   color: var(--color-accent-text);
 }
 
-button.primary:hover:not(:disabled) {
+button.primary:hover:not(:disabled),
+.button.primary:hover {
   background: color-mix(in srgb, var(--color-accent) 85%, var(--color-bg));
 }
 

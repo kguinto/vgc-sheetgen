@@ -2,6 +2,10 @@ import { PDFDocument } from 'pdf-lib';
 import { describe, expect, it } from 'vitest';
 import { renderTeamSheet } from '../../src/core/teamsheet/render';
 import type { Team } from '../../src/core/team/types';
+import {
+  NO_PLAYER_DETAILS,
+  type PlayerDetails,
+} from '../../src/core/teamsheet/player';
 import { loadTemplate } from '../../src/node/teamsheet';
 import { fixtureFile } from '../support/fixtures';
 
@@ -12,6 +16,25 @@ const team = JSON.parse(
 ) as Team;
 
 const STAT_FIELD = /\.stats\./;
+
+const player: PlayerDetails = {
+  playerName: 'Kirk Guinto',
+  battleTeam: 'Slot 1',
+  switchProfileName: 'kirk',
+  ageDivision: 'masters',
+  playerId: '1234567',
+  birthDate: { month: '07', day: '15', year: '1999' },
+  supportId: 'ABC123',
+};
+
+/** What was written on one page, by field. */
+async function written(page: 'staff' | 'opponent', details = player) {
+  const { placements } = await renderTeamSheet(template, team, details);
+
+  return Object.fromEntries(
+    placements.filter((p) => p.page === page).map((p) => [p.field, p.text]),
+  );
+}
 
 describe('renderTeamSheet', () => {
   it('fills in both pages of the form', async () => {
@@ -145,5 +168,51 @@ describe('renderTeamSheet', () => {
       }),
       expect.objectContaining({ code: 'too-long', page: 'opponent' }),
     ]);
+  });
+
+  it("writes the player's details on the staff page", async () => {
+    expect(await written('staff')).toMatchObject({
+      playerName: 'Kirk Guinto',
+      trainerName: 'Louie',
+      battleTeam: 'Slot 1',
+      switchProfileName: 'kirk',
+      ageDivision: 'masters',
+      playerId: '1234567',
+      'birthDate.month': '07',
+      'birthDate.day': '15',
+      'birthDate.year': '1999',
+      supportId: 'ABC123',
+    });
+  });
+
+  it('leaves the personal details off the opponent page', async () => {
+    const opponent = await written('opponent');
+
+    expect(opponent).toMatchObject({
+      playerName: 'Kirk Guinto',
+      battleTeam: 'Slot 1',
+      switchProfileName: 'kirk',
+      ageDivision: 'masters',
+    });
+    expect(Object.keys(opponent)).not.toContain('playerId');
+    expect(Object.keys(opponent).some((f) => f.startsWith('birthDate'))).toBe(
+      false,
+    );
+    expect(Object.keys(opponent)).not.toContain('supportId');
+  });
+
+  it('leaves the details blank when none are given', async () => {
+    const fields = Object.keys(await written('staff', NO_PLAYER_DETAILS));
+
+    expect(fields).toContain('trainerName');
+    expect(fields).not.toContain('playerName');
+    expect(fields).not.toContain('ageDivision');
+    expect(fields.some((f) => f.startsWith('birthDate'))).toBe(false);
+  });
+
+  it('names the PDF after the trainer', async () => {
+    const { pdf } = await renderTeamSheet(template, team);
+
+    expect((await PDFDocument.load(pdf)).getTitle()).toBe('Team list: Louie');
   });
 });
