@@ -4,6 +4,11 @@ A static web app that reads Pokémon Champions screenshots with on-device OCR
 and generates Pokémon VGC team lists. Nothing is uploaded: OCR runs in your
 browser.
 
+The text recognizer itself ([Tesseract](https://github.com/naptha/tesseract.js),
+about 7 MB) is downloaded from the jsDelivr CDN the first time it's needed,
+and your browser keeps it after that. Only Tesseract's own code and model come
+from there; your screenshots never leave your device.
+
 ## Development
 
 Requires Node 22+ and pnpm 11.
@@ -13,13 +18,17 @@ pnpm install
 pnpm dev         # Vite dev server
 pnpm build       # typecheck + production build to dist/
 pnpm preview     # serve dist/
-pnpm test        # vitest (test/**/*.test.ts)
+pnpm test        # vitest, in Node (test/**/*.test.ts)
+pnpm test:browser  # vitest, in headless Chromium (test/browser/); needs the internet
 pnpm typecheck   # tsc -b
 pnpm lint        # oxlint + oxfmt --check
 pnpm lint:fix
 pnpm sheetgen    # read a Battle Team from the command line; see below
 pnpm accuracy    # how many fixture fields are read correctly
 ```
+
+Before the first `pnpm test:browser`, download the browser it runs in with
+`pnpm exec playwright install chromium`.
 
 ## Reading a team from the command line
 

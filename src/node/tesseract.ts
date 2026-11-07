@@ -1,7 +1,8 @@
 import { createRequire } from 'node:module';
 import path from 'node:path';
-import { createWorker, OEM, PSM } from 'tesseract.js';
-import type { OcrEngine, RecognizedLine } from '../core/ocr/engine';
+import { createWorker, OEM } from 'tesseract.js';
+import type { OcrEngine } from '../core/ocr/engine';
+import { tesseractEngine } from '../core/ocr/tesseract-engine';
 import { encodeGrayPng } from './image';
 
 const require = createRequire(import.meta.url);
@@ -29,43 +30,11 @@ export async function createNodeEngine(): Promise<NodeEngine> {
     cacheMethod: 'none',
   });
 
-  // Each crop holds one line of text.
-  await worker.setParameters({ tessedit_pageseg_mode: PSM.SINGLE_LINE });
-
-  // Changing settings has a cost, so only do it when the whitelist changes.
-  let currentWhitelist: string | undefined;
+  // Tesseract takes image files, so each crop is encoded as a PNG.
+  const engine = await tesseractEngine(worker, encodeGrayPng);
 
   return {
-    async recognizeLine(image, whitelist): Promise<RecognizedLine> {
-      if (whitelist !== currentWhitelist) {
-        await worker.setParameters({ tessedit_char_whitelist: whitelist });
-        currentWhitelist = whitelist;
-      }
-
-      // Tesseract takes image files, so the crop is encoded as a PNG.
-      const { data } = await worker.recognize(
-        encodeGrayPng(image),
-        {},
-        { text: true, blocks: true },
-      );
-
-      // Every character read, with how sure Tesseract is of each.
-      const symbols = (data.blocks ?? []).flatMap((block) =>
-        block.paragraphs.flatMap((paragraph) =>
-          paragraph.lines.flatMap((line) =>
-            line.words.flatMap((word) =>
-              word.symbols.map((s) => ({
-                text: s.text,
-                confidence: s.confidence,
-              })),
-            ),
-          ),
-        ),
-      );
-
-      return { text: data.text.trim(), confidence: data.confidence, symbols };
-    },
-
+    ...engine,
     terminate: async () => {
       await worker.terminate();
     },

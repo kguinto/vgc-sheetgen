@@ -5,5 +5,6 @@
     "lib": ["ES2023"],
     "types": ["node"]
   },
-  "include": ["test/**/*", "scripts/**/*"]
+  "include": ["test/**/*", "scripts/**/*"],
+  "exclude": ["test/browser/**/*"]
 }
