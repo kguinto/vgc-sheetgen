@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { RgbaImage } from '../../src/core/ocr/image';
-import type { BattleTeamScreen } from '../../src/core/ocr/inspect';
+import type { RecognizedScreen } from '../../src/core/ocr/inspect';
 import { decodeImage } from '../../src/node/image';
 
 const FIXTURES = path.join(import.meta.dirname, '../fixtures');
@@ -35,18 +35,18 @@ export function solidImage(
 
 /**
  * A stand-in for a recognized screen, for tests that only care about its
- * tab and name: a 1×1 image with no cards or fields.
+ * kind and name: a 1×1 image with no fields.
  */
 export function fakeScreen(
-  kind: BattleTeamScreen['kind'],
+  kind: RecognizedScreen['kind'],
   name: string,
-): BattleTeamScreen {
+): RecognizedScreen {
   return {
     kind,
     name,
-    layout: { name: 'test', scale: 1 },
+    layout: 'test',
+    scale: 1,
     image: solidImage(1, 1),
-    slots: [],
     fields: [],
   };
 }

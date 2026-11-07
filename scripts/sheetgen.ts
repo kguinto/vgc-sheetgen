@@ -14,7 +14,7 @@
  *               e.g. `--log run.log`. With --debug, that includes the JSON.
  */
 import { readTeam } from '../src/core/ocr/pipeline';
-import { SCREEN_NAMES } from '../src/core/ocr/signals';
+import { filledCards, screenTitle } from '../src/core/ocr/screens';
 import { formatScreenshotProblem } from '../src/core/screenshot-problems';
 import { parseArguments, readFiles } from '../src/node/cli';
 import { decodeImage } from '../src/node/image';
@@ -88,10 +88,10 @@ if (problems.length > 0) {
 for (const screen of [screens.moves, screens.stats]) {
   if (!screen) continue;
 
-  const pokemon = screen.slots.filter((s) => s.present).length;
+  const pokemon = filledCards(screen).length;
 
   logger.info(
-    `${SCREEN_NAMES[screen.kind]}: ${screen.name} (layout ${screen.layout.name}, ${pokemon} Pokémon)`,
+    `${screenTitle(screen.kind)}: ${screen.name} (layout ${screen.layout}, ${pokemon} Pokémon)`,
   );
 }
 

@@ -21,12 +21,14 @@ describe('readTeam', () => {
       expect(screens.moves).toMatchObject({
         kind: 'moves',
         name: MOVES,
-        layout: { name: 'console-1080', scale: 1 },
+        layout: 'console-1080',
+        scale: 1,
       });
       expect(screens.stats).toMatchObject({
         kind: 'stats',
         name: STATS,
-        layout: { name: 'console-720', scale: 1.5 },
+        layout: 'console-720',
+        scale: 1.5,
       });
     }
   });

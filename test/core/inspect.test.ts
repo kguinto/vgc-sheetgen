@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { RgbaImage, Rect } from '../../src/core/ocr/image';
-import { inspectScreenshot, getScreenPair } from '../../src/core/ocr/inspect';
+import { inspectScreenshot } from '../../src/core/ocr/inspect';
 import { offsetRect } from '../../src/core/ocr/layout';
 import { console1080 } from '../../src/core/ocr/layouts/console-1080';
-import { fakeScreen, loadFixture, solidImage } from '../support/fixtures';
+import { filledCards } from '../../src/core/ocr/screens';
+import { loadFixture, solidImage } from '../support/fixtures';
 
 const fixtures = [
   {
@@ -50,9 +51,10 @@ describe('inspectScreenshot', () => {
       expect(problem).toBeUndefined();
       expect(screen?.kind).toBe(kind);
       expect(screen?.name).toBe(file);
-      expect(screen?.layout).toEqual({ name: layout, scale });
+      expect(screen?.layout).toBe(layout);
+      expect(screen?.scale).toBe(scale);
       expect(screen?.image).toMatchObject({ width: 1920, height: 1080 });
-      expect(screen?.slots.every((s) => s.present)).toBe(true);
+      expect(filledCards(screen!)).toEqual([0, 1, 2, 3, 4, 5]);
       expect(screen?.fields).toHaveLength(fields);
     },
   );
@@ -104,14 +106,7 @@ describe('inspectScreenshot', () => {
 
     const screen = inspectScreenshot(image, 'team-1-moves.jpg').screen;
 
-    expect(screen?.slots.map((s) => s.present)).toEqual([
-      true,
-      true,
-      true,
-      true,
-      true,
-      false,
-    ]);
+    expect(filledCards(screen!)).toEqual([0, 1, 2, 3, 4]);
     expect(screen?.fields).toHaveLength(44 - 7);
     expect(screen?.fields.some((f) => f.key.startsWith('slot.5.'))).toBe(false);
   });
@@ -122,55 +117,22 @@ describe('inspectScreenshot', () => {
     ).toBe('unknown-screen');
   });
 
+  it('reports a screenshot where both tabs look selected', async () => {
+    // Paint the Stats tab lime too, so both tabs look selected.
+    const image = await loadFixture('console-1080/team-1-moves.jpg');
+    const { x, y } = console1080.tabs.stats;
+
+    image.data.set([194, 235, 31], (y * image.width + x) * 4);
+
+    expect(inspectScreenshot(image, 'both.png').problem?.code).toBe(
+      'unknown-screen',
+    );
+  });
+
   it('reports an image that is not 16:9', () => {
     expect(
       inspectScreenshot(solidImage(1024, 768), 'square.png').problem?.code,
     ).toBe('unsupported-size');
-  });
-});
-
-describe('getScreenPair', () => {
-  const moves = fakeScreen('moves', 'moves.png');
-  const stats = fakeScreen('stats', 'stats.png');
-
-  it('accepts either order', () => {
-    expect(getScreenPair([moves, stats])).toEqual({
-      pair: { moves, stats },
-      problems: [],
-    });
-    expect(getScreenPair([stats, moves])).toEqual({
-      pair: { moves, stats },
-      problems: [],
-    });
-  });
-
-  it('reports two screenshots of the same tab', () => {
-    const { pair, problems } = getScreenPair([moves, stats, stats]);
-
-    expect(pair).toEqual({ moves });
-    expect(problems.map((p) => p.code)).toEqual(['same-screen']);
-  });
-
-  it("doesn't report a missing tab when screenshots were unusable", () => {
-    expect(getScreenPair([moves], { unusable: 1 }).problems).toEqual([]);
-  });
-
-  it("doesn't report a missing tab next to two of the other tab", () => {
-    const { problems } = getScreenPair([moves, moves]);
-
-    expect(problems.map((p) => p.code)).toEqual(['same-screen']);
-  });
-
-  it('reports a missing tab', () => {
-    const { pair, problems } = getScreenPair([moves]);
-
-    expect(pair).toEqual({ moves });
-    expect(problems).toEqual([
-      {
-        code: 'missing-screen',
-        message: "There's no screenshot of the Stats tab. Add one.",
-      },
-    ]);
   });
 });
 
