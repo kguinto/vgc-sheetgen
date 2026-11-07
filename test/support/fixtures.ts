@@ -6,6 +6,19 @@ import { decodeImage } from '../../src/node/image';
 
 const FIXTURES = path.join(import.meta.dirname, '../fixtures');
 
+/**
+ * The fixture folders, one per layout, e.g. `console-1080`. Files next to
+ * them are skipped, such as the `.DS_Store` that macOS's Finder leaves in
+ * folders it has shown.
+ */
+export function fixtureLayouts(): string[] {
+  return fs
+    .readdirSync(FIXTURES, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+}
+
 /** A fixture screenshot as `readTeam` takes it: its name and file contents. */
 export function fixtureFile(name: string) {
   return { name, bytes: fs.readFileSync(path.join(FIXTURES, name)) };
