@@ -19,7 +19,13 @@ export type ScreenshotProblemCode =
   /** The file isn't a PNG or JPEG image, or it's damaged. */
   | 'unreadable-image'
   /** The screenshot isn't 16:9, so it isn't from a supported console. */
-  | 'unsupported-size';
+  | 'unsupported-size'
+  /** It's not a Battle Team screen: neither of its two tabs is selected. */
+  | 'unknown-screen'
+  /** There's no screenshot of the Moves & More tab, or none of Stats. */
+  | 'missing-screen'
+  /** Two screenshots show the same tab. */
+  | 'same-screen';
 
 /**
  * The problem as one line of text, starting with the screenshot it's about:

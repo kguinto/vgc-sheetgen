@@ -1,7 +1,11 @@
 import type { ScreenshotProblem } from '../screenshot-problems';
 import type { ImageResult } from './image';
-import { selectLayout } from './layout';
-import { LAYOUTS } from './layouts';
+import {
+  inspectScreenshot,
+  type InspectResult,
+  type RecognizedScreen,
+} from './inspect';
+import { getScreenPair, type ScreenPair } from './screens';
 
 /** A screenshot file as the user gave it: a name to show, and its contents. */
 export type ScreenshotInput = { name: string; bytes: Uint8Array };
@@ -12,22 +16,16 @@ export type ReadTeamOptions = {
    * the browser do this differently: Node uses the jpeg-js and pngjs
    * libraries, and the browser has image decoding built in.
    */
-  decodeImage(bytes: Uint8Array): ImageResult | Promise<ImageResult>;
-};
-
-/** What's been worked out so far about a screenshot that can be used. */
-export type ScreenshotSummary = {
-  name: string;
-  width: number;
-  height: number;
-  /** Which console's screen layout it matched, e.g. `console-720`. */
-  layout: string;
+  decodeImage(bytes: Uint8Array): Promise<ImageResult>;
 };
 
 export type ReadTeamResult = {
-  /** The screenshots that can be used, in the order they were given. */
-  screenshots: ScreenshotSummary[];
-  /** Why the others can't, each naming its screenshot. */
+  /**
+   * The screenshot of each tab, as far as they could be recognized. Either
+   * may be missing when there are problems.
+   */
+  screens: ScreenPair;
+  /** Why some screenshots can't be used, each naming its screenshot. */
   problems: ScreenshotProblem[];
 };
 
@@ -36,9 +34,9 @@ export type ReadTeamResult = {
  * This is the one function both the command-line script and the web app
  * call, so they behave the same.
  *
- * So far it only turns each file into pixels and works out which console's
- * screen layout it matches. Recognizing the tabs, reading the text, and
- * putting the team together will be added here.
+ * So far it recognizes which tab each screenshot shows and where the text
+ * on it is. Reading the text and putting the team together will be added
+ * here.
  *
  * A screenshot that can't be used doesn't stop the others: its problem is
  * returned alongside whatever could be read, and the caller decides what to
@@ -48,41 +46,66 @@ export async function readTeam(
   screenshots: ScreenshotInput[],
   options: ReadTeamOptions,
 ): Promise<ReadTeamResult> {
-  const summaries: ScreenshotSummary[] = [];
+  // Step 1: Check each screenshot, all at the same time. A problem with one
+  // doesn't stop the others, and results keep the order they were given in.
+  const results = await Promise.all(
+    screenshots.map((screenshot) =>
+      checkScreenshot(screenshot, options.decodeImage),
+    ),
+  );
+
+  const { screens, problems } = splitResults(results);
+
+  // Step 2: Pair up the Moves & More and the Stats screenshot.
+  const { pair, problems: pairProblems } = getScreenPair(screens, {
+    unusable: problems.length,
+  });
+
+  // TODO: Read the text on each screen and put the team together.
+
+  return { screens: pair, problems: [...problems, ...pairProblems] };
+}
+
+/**
+ * Turns one screenshot file into a recognized screen, or the reason it
+ * can't be used, tagged with the screenshot's name so the user knows which
+ * file to fix.
+ */
+async function checkScreenshot(
+  { name, bytes }: ScreenshotInput,
+  decodeImage: ReadTeamOptions['decodeImage'],
+): Promise<InspectResult> {
+  // Turn the file into pixels. This fails if it isn't a PNG or JPEG, or is
+  // damaged.
+  const { image, problem } = await decodeImage(bytes);
+
+  if (problem) return { problem: { ...problem, input: name } };
+
+  // Work out which console and screen it shows, and where the text is. This
+  // fails if it isn't a supported screen from a supported console.
+  const inspected = inspectScreenshot(image, name);
+
+  return inspected.problem
+    ? { problem: { ...inspected.problem, input: name } }
+    : inspected;
+}
+
+/**
+ * Splits per-screenshot results into the screens that were recognized and
+ * the problems with the rest, keeping the order they were given in.
+ */
+function splitResults(results: InspectResult[]): {
+  screens: RecognizedScreen[];
+  problems: ScreenshotProblem[];
+} {
+  const screens: RecognizedScreen[] = [];
   const problems: ScreenshotProblem[] = [];
 
-  // Each screenshot is handled on its own, so a problem with one doesn't
-  // stop the others from being checked. Problems are tagged with the
-  // screenshot's name, so the user knows which file to fix.
-  for (const { name, bytes } of screenshots) {
-    // Step 1: Turn the file into pixels. This fails if it isn't a PNG or
-    // JPEG, or is damaged.
-    const { image, problem: decodeProblem } = await options.decodeImage(bytes);
+  for (const { screen, problem } of results) {
+    if (screen) screens.push(screen);
 
-    if (decodeProblem) {
-      problems.push({ ...decodeProblem, input: name });
-      continue;
-    }
-
-    // Step 2: Work out which console it's from by its size, which tells us
-    // where everything is on the screen. This fails if it isn't 16:9.
-    const { layout, problem: layoutProblem } = selectLayout(image, LAYOUTS);
-
-    if (layoutProblem) {
-      problems.push({ ...layoutProblem, input: name });
-      continue;
-    }
-
-    // Step 3: Note what was found, for the caller to show.
-    // TODO: Recognize which tab the screenshot shows (Moves & More or
-    // Stats), and find each Pokémon's card on it.
-    const { width, height } = image;
-
-    summaries.push({ name, width, height, layout: layout.name });
+    if (problem) problems.push(problem);
   }
 
-  // TODO: Check there's exactly one screenshot of each tab, read the text
-  // on each, and put the team together.
-
-  return { screenshots: summaries, problems };
+  return { screens, problems };
 }

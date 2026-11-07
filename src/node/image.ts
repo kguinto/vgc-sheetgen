@@ -15,7 +15,7 @@ const unreadable = (message: string): ScreenshotProblem => ({
 });
 
 /** Decodes a PNG or JPEG file, identified by its contents, to RGBA. */
-export function decodeImage(bytes: Uint8Array): ImageResult {
+export async function decodeImage(bytes: Uint8Array): Promise<ImageResult> {
   const isPng = startsWith(bytes, PNG_SIGNATURE);
 
   if (!isPng && !startsWith(bytes, JPEG_SIGNATURE)) {
