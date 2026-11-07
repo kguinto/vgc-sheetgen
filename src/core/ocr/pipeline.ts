@@ -1,7 +1,11 @@
 import type { ScreenshotProblem } from '../screenshot-problems';
 import type { ImageResult } from './image';
-import { selectLayout } from './layout';
-import { LAYOUTS } from './layouts';
+import {
+  inspectScreenshot,
+  getScreenPair,
+  type BattleTeamScreen,
+  type ScreenPair,
+} from './inspect';
 
 /** A screenshot file as the user gave it: a name to show, and its contents. */
 export type ScreenshotInput = { name: string; bytes: Uint8Array };
@@ -15,19 +19,16 @@ export type ReadTeamOptions = {
   decodeImage(bytes: Uint8Array): ImageResult | Promise<ImageResult>;
 };
 
-/** What's been worked out so far about a screenshot that can be used. */
-export type ScreenshotSummary = {
-  name: string;
-  width: number;
-  height: number;
-  /** Which console's screen layout it matched, e.g. `console-720`. */
-  layout: string;
-};
+/** A recognized screenshot, with the name it was given (e.g. its file name). */
+export type NamedScreen = BattleTeamScreen & { name: string };
 
 export type ReadTeamResult = {
-  /** The screenshots that can be used, in the order they were given. */
-  screenshots: ScreenshotSummary[];
-  /** Why the others can't, each naming its screenshot. */
+  /**
+   * The screenshot of each tab, as far as they could be recognized. Either
+   * may be missing when there are problems.
+   */
+  screens: Omit<ScreenPair<NamedScreen>, 'problems'>;
+  /** Why some screenshots can't be used, each naming its screenshot. */
   problems: ScreenshotProblem[];
 };
 
@@ -36,9 +37,9 @@ export type ReadTeamResult = {
  * This is the one function both the command-line script and the web app
  * call, so they behave the same.
  *
- * So far it only turns each file into pixels and works out which console's
- * screen layout it matches. Recognizing the tabs, reading the text, and
- * putting the team together will be added here.
+ * So far it recognizes which tab each screenshot shows and where the text
+ * on it is. Reading the text and putting the team together will be added
+ * here.
  *
  * A screenshot that can't be used doesn't stop the others: its problem is
  * returned alongside whatever could be read, and the caller decides what to
@@ -48,7 +49,7 @@ export async function readTeam(
   screenshots: ScreenshotInput[],
   options: ReadTeamOptions,
 ): Promise<ReadTeamResult> {
-  const summaries: ScreenshotSummary[] = [];
+  const recognized: NamedScreen[] = [];
   const problems: ScreenshotProblem[] = [];
 
   // Each screenshot is handled on its own, so a problem with one doesn't
@@ -64,25 +65,31 @@ export async function readTeam(
       continue;
     }
 
-    // Step 2: Work out which console it's from by its size, which tells us
-    // where everything is on the screen. This fails if it isn't 16:9.
-    const { layout, problem: layoutProblem } = selectLayout(image, LAYOUTS);
+    // Step 2: Work out which console and which tab it shows, and where each
+    // Pokémon's card and every piece of text is. This fails if it isn't a
+    // Battle Team screenshot from a supported console.
+    const { screen, problem: inspectProblem } = inspectScreenshot(image);
 
-    if (layoutProblem) {
-      problems.push({ ...layoutProblem, input: name });
+    if (inspectProblem) {
+      problems.push({ ...inspectProblem, input: name });
       continue;
     }
 
-    // Step 3: Note what was found, for the caller to show.
-    // TODO: Recognize which tab the screenshot shows (Moves & More or
-    // Stats), and find each Pokémon's card on it.
-    const { width, height } = image;
-
-    summaries.push({ name, width, height, layout: layout.name });
+    recognized.push({ ...screen, name });
   }
 
-  // TODO: Check there's exactly one screenshot of each tab, read the text
-  // on each, and put the team together.
+  // Step 3: Pick out the Moves & More and the Stats screenshot. A missing
+  // tab is only reported when there's no other problem: otherwise that
+  // problem (an unusable file, or two of the same tab) already explains it.
+  const { problems: pairProblems, ...screens } = getScreenPair(recognized);
+  const otherProblems = [
+    ...problems,
+    ...pairProblems.filter((p) => p.code !== 'missing-screen'),
+  ];
 
-  return { screenshots: summaries, problems };
+  const allProblems = otherProblems.length > 0 ? otherProblems : pairProblems;
+
+  // TODO: Read the text on each screen and put the team together.
+
+  return { screens, problems: allProblems };
 }

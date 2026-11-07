@@ -29,6 +29,23 @@ export function pixelAt(img: RgbaImage, x: number, y: number): Rgb {
   return [img.data[i] ?? 0, img.data[i + 1] ?? 0, img.data[i + 2] ?? 0];
 }
 
+/** How many pixels inside `rect` pass the `match` test. */
+export function countPixels(
+  img: RgbaImage,
+  rect: Rect,
+  match: (rgb: Rgb) => boolean,
+): number {
+  let count = 0;
+
+  for (let y = rect.y; y < rect.y + rect.h; y++) {
+    for (let x = rect.x; x < rect.x + rect.w; x++) {
+      if (match(pixelAt(img, x, y))) count++;
+    }
+  }
+
+  return count;
+}
+
 /**
  * Scales an image to a new size, e.g. a 1280×720 Switch screenshot up to
  * 1920×1080 so it lines up with positions measured on a Switch 2 screenshot.
