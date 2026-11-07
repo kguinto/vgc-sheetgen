@@ -2,7 +2,7 @@
 // are, how each is recognized and read (one file per screen), and what a
 // team needs (one screenshot of each Battle Team tab).
 
-import type { ScreenshotProblem } from '../../screenshot-problems';
+import type { ScreenshotProblem } from '../screenshot-problems';
 import type { RgbaImage } from '../image';
 import type { Field, RecognizedScreen } from '../inspect';
 import type { LayoutProfile } from '../layout';

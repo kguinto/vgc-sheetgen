@@ -43,7 +43,7 @@ export function App() {
       {page === 0 && (
         <ScreenshotsPage screenshots={screenshots} onChange={setScreenshots} />
       )}
-      {page === 1 && <ReviewPage />}
+      {page === 1 && <ReviewPage screenshots={screenshots} />}
       {page === 2 && <TeamListPage />}
     </PageLayout>
   );

@@ -1,4 +1,4 @@
-import type { ScreenshotProblem } from '../screenshot-problems';
+import type { ScreenshotProblem } from './screenshot-problems';
 import type { Team } from '../team/types';
 import type { OcrEngine } from './engine';
 import type { ImageResult } from './image';

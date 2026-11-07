@@ -1,4 +1,4 @@
-import type { ScreenshotProblem } from '../screenshot-problems';
+import type { ScreenshotProblem } from './screenshot-problems';
 import type { AlignableStatKey, StatKey } from '../team/types';
 import type { Rect } from './image';
 
