@@ -30,7 +30,7 @@ export function mergeTeam(moves: FieldResult[], stats: FieldResult[]): Team {
   return {
     teamId: text('teamId'),
     trainerName: text('trainerName'),
-    pokemon: filledCards(moves, stats).map((card): PokemonSet => ({
+    pokemon: teamCards(moves, stats).map((card): PokemonSet => ({
       species: text(`slot.${card}.species`),
       ability: text(`slot.${card}.ability`),
       item: text(`slot.${card}.item`),
@@ -61,10 +61,12 @@ function byKey(results: FieldResult[]): Map<string, FieldResult> {
 }
 
 /**
- * Which cards have a Pokémon on either screen, in order. A card's fields
- * are only read when it has one, and their keys start with `slot.<card>.`.
+ * Which cards have a Pokémon on either screen, in order: the team's first
+ * Pokémon is on the first of these cards, and so on. (Cards are numbered
+ * left to right, then top to bottom, from 0.) A card's fields are only
+ * read when it has one, and their keys start with `slot.<card>.`.
  */
-function filledCards(...screens: FieldResult[][]): number[] {
+export function teamCards(...screens: FieldResult[][]): number[] {
   const cards = screens.flat().flatMap(({ key }) => {
     const match = /^slot\.(\d+)\./.exec(key);
 

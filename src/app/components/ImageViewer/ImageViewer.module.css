@@ -59,3 +59,9 @@
   max-height: calc(95vh - 50px);
   object-fit: contain;
 }
+
+/* Part of a screenshot: its width is set to fit the window (see
+   `PartImage`), keeping its shape. */
+.part {
+  display: block;
+}
