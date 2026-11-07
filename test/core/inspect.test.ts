@@ -3,7 +3,7 @@ import type { RgbaImage, Rect } from '../../src/core/ocr/image';
 import { inspectScreenshot, getScreenPair } from '../../src/core/ocr/inspect';
 import { offsetRect } from '../../src/core/ocr/layout';
 import { console1080 } from '../../src/core/ocr/layouts/console-1080';
-import { loadFixture, solidImage } from '../support/fixtures';
+import { fakeScreen, loadFixture, solidImage } from '../support/fixtures';
 
 const fixtures = [
   {
@@ -41,11 +41,15 @@ describe('inspectScreenshot', () => {
   // Switch) plus 7 per card.
   it.each(fixtures)(
     'recognizes $file',
-    ({ file, kind, layout, scale, fields }) => {
-      const { screen, problem } = inspectScreenshot(loadFixture(file));
+    async ({ file, kind, layout, scale, fields }) => {
+      const { screen, problem } = inspectScreenshot(
+        await loadFixture(file),
+        file,
+      );
 
       expect(problem).toBeUndefined();
       expect(screen?.kind).toBe(kind);
+      expect(screen?.name).toBe(file);
       expect(screen?.layout).toEqual({ name: layout, scale });
       expect(screen?.image).toMatchObject({ width: 1920, height: 1080 });
       expect(screen?.slots.every((s) => s.present)).toBe(true);
@@ -53,9 +57,10 @@ describe('inspectScreenshot', () => {
     },
   );
 
-  it('lists the header, then each card in order', () => {
+  it('lists the header, then each card in order', async () => {
     const moves = inspectScreenshot(
-      loadFixture('console-1080/team-1-moves.jpg'),
+      await loadFixture('console-1080/team-1-moves.jpg'),
+      'team-1-moves.jpg',
     ).screen;
 
     expect(moves?.fields.slice(0, 9).map((f) => f.key)).toEqual([
@@ -71,7 +76,8 @@ describe('inspectScreenshot', () => {
     ]);
 
     const stats = inspectScreenshot(
-      loadFixture('console-720/team-2-stats.jpg'),
+      await loadFixture('console-720/team-2-stats.jpg'),
+      'team-2-stats.jpg',
     ).screen;
 
     // Switch screenshots have no Team ID.
@@ -87,16 +93,16 @@ describe('inspectScreenshot', () => {
     ]);
   });
 
-  it('skips the fields of an empty card', () => {
+  it('skips the fields of an empty card', async () => {
     // Paint over the sixth card's species name, as if the card were empty.
-    const image = loadFixture('console-1080/team-1-moves.jpg');
+    const image = await loadFixture('console-1080/team-1-moves.jpg');
 
     blackOut(
       image,
       offsetRect(console1080.movesCard.species, console1080.cards[5]!),
     );
 
-    const screen = inspectScreenshot(image).screen;
+    const screen = inspectScreenshot(image, 'team-1-moves.jpg').screen;
 
     expect(screen?.slots.map((s) => s.present)).toEqual([
       true,
@@ -111,47 +117,54 @@ describe('inspectScreenshot', () => {
   });
 
   it('reports a 16:9 image that is not a Battle Team screen', () => {
-    expect(inspectScreenshot(solidImage(1920, 1080)).problem?.code).toBe(
-      'unknown-screen',
-    );
+    expect(
+      inspectScreenshot(solidImage(1920, 1080), 'blank.png').problem?.code,
+    ).toBe('unknown-screen');
   });
 
   it('reports an image that is not 16:9', () => {
-    expect(inspectScreenshot(solidImage(1024, 768)).problem?.code).toBe(
-      'unsupported-size',
-    );
+    expect(
+      inspectScreenshot(solidImage(1024, 768), 'square.png').problem?.code,
+    ).toBe('unsupported-size');
   });
 });
 
 describe('getScreenPair', () => {
-  type Item = { kind: 'moves' | 'stats'; n: number };
-  const moves: Item = { kind: 'moves', n: 1 };
-  const stats: Item = { kind: 'stats', n: 2 };
+  const moves = fakeScreen('moves', 'moves.png');
+  const stats = fakeScreen('stats', 'stats.png');
 
   it('accepts either order', () => {
     expect(getScreenPair([moves, stats])).toEqual({
-      moves,
-      stats,
+      pair: { moves, stats },
       problems: [],
     });
     expect(getScreenPair([stats, moves])).toEqual({
-      moves,
-      stats,
+      pair: { moves, stats },
       problems: [],
     });
   });
 
   it('reports two screenshots of the same tab', () => {
-    const { stats: found, problems } = getScreenPair([moves, stats, stats]);
+    const { pair, problems } = getScreenPair([moves, stats, stats]);
 
-    expect(found).toBeUndefined();
+    expect(pair).toEqual({ moves });
+    expect(problems.map((p) => p.code)).toEqual(['same-screen']);
+  });
+
+  it("doesn't report a missing tab when screenshots were unusable", () => {
+    expect(getScreenPair([moves], { unusable: 1 }).problems).toEqual([]);
+  });
+
+  it("doesn't report a missing tab next to two of the other tab", () => {
+    const { problems } = getScreenPair([moves, moves]);
+
     expect(problems.map((p) => p.code)).toEqual(['same-screen']);
   });
 
   it('reports a missing tab', () => {
-    const { moves: found, problems } = getScreenPair([moves]);
+    const { pair, problems } = getScreenPair([moves]);
 
-    expect(found).toBe(moves);
+    expect(pair).toEqual({ moves });
     expect(problems).toEqual([
       {
         code: 'missing-screen',

@@ -16,18 +16,15 @@ export type ReadTeamOptions = {
    * the browser do this differently: Node uses the jpeg-js and pngjs
    * libraries, and the browser has image decoding built in.
    */
-  decodeImage(bytes: Uint8Array): ImageResult | Promise<ImageResult>;
+  decodeImage(bytes: Uint8Array): Promise<ImageResult>;
 };
-
-/** A recognized screenshot, with the name it was given (e.g. its file name). */
-export type NamedScreen = BattleTeamScreen & { name: string };
 
 export type ReadTeamResult = {
   /**
    * The screenshot of each tab, as far as they could be recognized. Either
    * may be missing when there are problems.
    */
-  screens: Omit<ScreenPair<NamedScreen>, 'problems'>;
+  screens: ScreenPair;
   /** Why some screenshots can't be used, each naming its screenshot. */
   problems: ScreenshotProblem[];
 };
@@ -49,47 +46,52 @@ export async function readTeam(
   screenshots: ScreenshotInput[],
   options: ReadTeamOptions,
 ): Promise<ReadTeamResult> {
-  const recognized: NamedScreen[] = [];
+  // Each screenshot is handled on its own, at the same time as the others,
+  // so a problem with one doesn't stop the others from being checked.
+  // Problems are tagged with the screenshot's name, so the user knows which
+  // file to fix. Results stay in the order the screenshots were given.
+  const checked = await Promise.all(
+    screenshots.map(async ({ name, bytes }) => {
+      // Step 1: Turn the file into pixels. This fails if it isn't a PNG or
+      // JPEG, or is damaged.
+      const { image, problem: decodeProblem } =
+        await options.decodeImage(bytes);
+
+      if (decodeProblem) return { problem: { ...decodeProblem, input: name } };
+
+      // Step 2: Work out which console and which tab it shows, and where
+      // each Pokémon's card and every piece of text is. This fails if it
+      // isn't a Battle Team screenshot from a supported console.
+      const { screen, problem: inspectProblem } = inspectScreenshot(
+        image,
+        name,
+      );
+
+      if (inspectProblem) {
+        return { problem: { ...inspectProblem, input: name } };
+      }
+
+      return { screen };
+    }),
+  );
+
+  // Split the results into the screens that were recognized and the
+  // problems with the rest.
+  const recognized: BattleTeamScreen[] = [];
   const problems: ScreenshotProblem[] = [];
 
-  // Each screenshot is handled on its own, so a problem with one doesn't
-  // stop the others from being checked. Problems are tagged with the
-  // screenshot's name, so the user knows which file to fix.
-  for (const { name, bytes } of screenshots) {
-    // Step 1: Turn the file into pixels. This fails if it isn't a PNG or
-    // JPEG, or is damaged.
-    const { image, problem: decodeProblem } = await options.decodeImage(bytes);
+  for (const { screen, problem } of checked) {
+    if (screen) recognized.push(screen);
 
-    if (decodeProblem) {
-      problems.push({ ...decodeProblem, input: name });
-      continue;
-    }
-
-    // Step 2: Work out which console and which tab it shows, and where each
-    // Pokémon's card and every piece of text is. This fails if it isn't a
-    // Battle Team screenshot from a supported console.
-    const { screen, problem: inspectProblem } = inspectScreenshot(image);
-
-    if (inspectProblem) {
-      problems.push({ ...inspectProblem, input: name });
-      continue;
-    }
-
-    recognized.push({ ...screen, name });
+    if (problem) problems.push(problem);
   }
 
-  // Step 3: Pick out the Moves & More and the Stats screenshot. A missing
-  // tab is only reported when there's no other problem: otherwise that
-  // problem (an unusable file, or two of the same tab) already explains it.
-  const { problems: pairProblems, ...screens } = getScreenPair(recognized);
-  const otherProblems = [
-    ...problems,
-    ...pairProblems.filter((p) => p.code !== 'missing-screen'),
-  ];
-
-  const allProblems = otherProblems.length > 0 ? otherProblems : pairProblems;
+  // Step 3: Pair up the Moves & More and the Stats screenshot.
+  const { pair, problems: pairProblems } = getScreenPair(recognized, {
+    unusable: problems.length,
+  });
 
   // TODO: Read the text on each screen and put the team together.
 
-  return { screens, problems: allProblems };
+  return { screens: pair, problems: [...problems, ...pairProblems] };
 }
