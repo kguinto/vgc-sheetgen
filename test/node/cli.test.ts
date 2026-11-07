@@ -1,7 +1,8 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { parseArguments, readFiles } from '../../src/node/cli';
+import { checkOutputPath, parseArguments, readFiles } from '../../src/node/cli';
 
 const JPEG = path.join(
   import.meta.dirname,
@@ -33,11 +34,36 @@ describe('parseArguments', () => {
     });
   });
 
+  it('reads where to save the team list', () => {
+    expect(parseArguments(['-o', 'team.pdf', 'a.png']).outputPath).toBe(
+      'team.pdf',
+    );
+    expect(parseArguments(['--output', 'team.pdf']).outputPath).toBe(
+      'team.pdf',
+    );
+  });
+
   it('explains a malformed command line', () => {
     expect(parseArguments(['--bogus']).error).toMatch(
       /Unknown option '--bogus'/,
     );
     expect(parseArguments(['--log']).error).toMatch(/argument missing/);
+  });
+});
+
+describe('checkOutputPath', () => {
+  it('accepts a file in a folder that exists', () => {
+    expect(checkOutputPath(path.join(os.tmpdir(), 'team.pdf'))).toBeUndefined();
+  });
+
+  it('explains a missing folder', () => {
+    expect(checkOutputPath('no-such-folder/team.pdf')).toMatch(
+      /the folder no-such-folder doesn't exist/,
+    );
+  });
+
+  it('explains a path that is a folder', () => {
+    expect(checkOutputPath(os.tmpdir())).toMatch(/is a folder/);
   });
 });
 
