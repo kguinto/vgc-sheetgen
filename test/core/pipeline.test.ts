@@ -111,20 +111,21 @@ describe('readTeam', () => {
 
   it("doesn't read any text when there are problems", async () => {
     const engine = fakeEngine();
-    const { reads, problems } = await readTeam(
+    const { reads, team, problems } = await readTeam(
       [fixtureFile(MOVES), fixtureFile('console-720/team-2-moves.png')],
       { decodeImage, engine },
     );
 
     expect(problems).not.toEqual([]);
     expect(reads).toEqual({});
+    expect(team).toBeUndefined();
     expect(engine.calls).toEqual([]);
   });
 
   it('reads both screens, one field at a time', async () => {
     const engine = fakeEngine();
     const progress: number[] = [];
-    const { screens, reads } = await readTeam(
+    const { screens, reads, team } = await readTeam(
       [fixtureFile(STATS), fixtureFile(MOVES)],
       { decodeImage, engine, onProgress: (done) => progress.push(done) },
     );
@@ -137,6 +138,9 @@ describe('readTeam', () => {
     expect(reads.stats?.map((r) => r.key)).toEqual(
       screens.stats!.fields.map((f) => f.key),
     );
+    // The team is put together from the reads (blank here, since the fake
+    // recognizer reads nothing), with one Pokémon per filled card.
+    expect(team?.pokemon).toHaveLength(6);
     // Never more than one call to the recognizer at a time.
     expect(engine.mostAtOnce).toBe(1);
     // Progress counts the fields of both screens, in one sequence.
