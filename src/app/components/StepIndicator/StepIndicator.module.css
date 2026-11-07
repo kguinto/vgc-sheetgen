@@ -1,0 +1,90 @@
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-muted);
+}
+
+/* A step's number and name. Finished steps are buttons, styled to match. */
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+}
+
+button.step {
+  padding: 2px 6px 2px 2px;
+  margin: -2px -6px -2px -2px;
+  border: none;
+  border-radius: var(--radius);
+  background: none;
+  font: inherit;
+}
+
+button.step:hover {
+  background: var(--color-accent-soft);
+}
+
+button.step:hover .name {
+  text-decoration: underline;
+}
+
+button.step:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* A short line between steps. */
+.steps li + li::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: var(--border);
+}
+
+.number {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  font-size: 0.8rem;
+}
+
+.steps li.current {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.current .number,
+.done .number {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-text);
+}
+
+/* On phones, only the current step is named, so the steps fit on one line. */
+@media (max-width: 480px) {
+  .steps {
+    flex-wrap: nowrap;
+  }
+
+  .steps li:not(.current) .name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+}

@@ -1,8 +1,170 @@
+/*
+ * Colors, fonts, element defaults, and the few utility classes shared
+ * across components. Each component's own styles live in its .module.css.
+ *
+ * The theme is set by `data-theme` on <html>: the script in index.html
+ * picks light or dark before the page is drawn, from the choice saved by the
+ * theme selector, or else from the device's setting.
+ */
+
+@font-face {
+  font-family: 'EB Garamond';
+  src: url('./assets/fonts/eb-garamond/eb-garamond-latin-wght-normal.woff2')
+    format('woff2');
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'EB Garamond';
+  src: url('./assets/fonts/eb-garamond/eb-garamond-latin-wght-italic.woff2')
+    format('woff2');
+  font-weight: 400 800;
+  font-style: italic;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'EB Garamond';
+  src: url('./assets/fonts/eb-garamond/eb-garamond-latin-ext-wght-normal.woff2')
+    format('woff2');
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'EB Garamond';
+  src: url('./assets/fonts/eb-garamond/eb-garamond-latin-ext-wght-italic.woff2')
+    format('woff2');
+  font-weight: 400 800;
+  font-style: italic;
+  font-display: swap;
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
 :root {
-  color-scheme: light dark;
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  /* Headings are in EB Garamond, everything else in Inter. */
+  --font-heading: 'EB Garamond', Georgia, serif;
+  --font-body: 'Inter Variable', system-ui, sans-serif;
+
+  /*
+   * Everything else is mixed from the background and text colors, so it
+   * follows the theme. These resolve per theme because data-theme sits on
+   * this same element.
+   */
+  --border: color-mix(in srgb, var(--color-text) 15%, transparent);
+  --color-muted: color-mix(in srgb, var(--color-text) 60%, transparent);
+  --color-surface: color-mix(in srgb, var(--color-text) 3%, var(--color-bg));
+  /* Main buttons and the current step: the text color, filled in. */
+  --color-accent: var(--color-text);
+  --color-accent-text: var(--color-bg);
+  --color-accent-soft: color-mix(in srgb, var(--color-text) 8%, transparent);
+
+  --radius: 10px;
+  --gap: 16px;
+}
+
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+  --color-bg: #f0eee6;
+  --color-text: #1f1e1d;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --color-bg: #1f1e1d;
+  --color-text: #eaeaea;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
 }
 
 body {
   margin: 0;
+  min-height: 100%;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  /* Digits all the same width, so numbers line up in columns. */
+  font-variant-numeric: tabular-nums;
+}
+
+/* Fills the window, so the footer sits at the bottom of short pages. */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 600;
+}
+
+button {
+  font: inherit;
+  padding: 6px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+button:hover:not(:disabled) {
+  background: var(--color-accent-soft);
+}
+
+button:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* The main action on a page, e.g. Next or Download PDF. */
+button.primary {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-text);
+}
+
+button.primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent) 85%, var(--color-bg));
+}
+
+/* Secondary text: explanations and counts. */
+.hint {
+  color: var(--color-muted);
+  font-size: 0.95rem;
 }

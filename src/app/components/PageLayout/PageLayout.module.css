@@ -1,0 +1,26 @@
+.layout {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.header p {
+  margin: 4px 0 0;
+  color: var(--color-muted);
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+
+/* The page's explanation, just under its heading. */
+.card > section > :global(.hint) {
+  margin: 4px 0 var(--gap);
+}
