@@ -1,28 +1,32 @@
 import { describe, expect, it } from 'vitest';
-import { preprocess } from '../../src/core/ocr/preprocess';
+import { preprocess, removeEdgeMarks } from '../../src/core/ocr/preprocess';
 
 describe('preprocess', () => {
   it('turns near-white text black, and everything else white', () => {
-    // One row of pixels: the game's white text, the purple card background,
-    // a colored icon, and light gray text.
-    const colors = [
+    // A 6×3 image with a purple border, and in the middle row: the game's
+    // white text, the purple card background, a colored icon, and light
+    // gray text. The border keeps them away from the edge, where marks are
+    // erased.
+    const purple = [120, 90, 200];
+    const middle = [
+      purple,
       [235, 235, 235],
       [120, 90, 200],
       [240, 70, 110],
       [200, 200, 200],
+      purple,
     ];
-    const data = new Uint8Array(colors.flatMap((rgb) => [...rgb, 255]));
-
-    const crop = preprocess(
-      { width: 4, height: 1, data },
-      { x: 0, y: 0, w: 4, h: 1 },
+    const rows = [Array(6).fill(purple), middle, Array(6).fill(purple)];
+    const data = new Uint8Array(
+      rows.flatMap((row) => row.flatMap((rgb) => [...rgb, 255])),
     );
 
-    expect(crop).toEqual({
-      width: 4,
-      height: 1,
-      data: new Uint8Array([0, 255, 255, 0]),
-    });
+    const crop = preprocess(
+      { width: 6, height: 3, data },
+      { x: 0, y: 0, w: 6, h: 3 },
+    );
+
+    expect([...crop.data.subarray(6, 12)]).toEqual([255, 0, 255, 255, 0, 255]);
   });
 
   it('crops to the rect', () => {
@@ -34,5 +38,47 @@ describe('preprocess', () => {
 
     expect(crop).toMatchObject({ width: 4, height: 5 });
     expect(crop.data).toHaveLength(4 * 5);
+  });
+});
+
+describe('removeEdgeMarks', () => {
+  /** A small black-and-white image from rows of `#` (black) and `.` (white). */
+  function crop(...rows: string[]) {
+    return {
+      width: rows[0]!.length,
+      height: rows.length,
+      data: new Uint8Array(
+        rows.flatMap((row) => [...row].map((c) => (c === '#' ? 0 : 255))),
+      ),
+    };
+  }
+
+  it('erases marks touching the edge, and keeps the rest', () => {
+    const result = removeEdgeMarks(
+      crop(
+        '......#',
+        '.##..##', // the right-hand mark reaches the edge
+        '.##...#',
+        '.......',
+      ),
+    );
+
+    expect(result).toEqual(crop('.......', '.##....', '.##....', '.......'));
+  });
+
+  it('erases a whole mark that reaches the edge, including diagonally', () => {
+    const result = removeEdgeMarks(
+      crop(
+        '.......',
+        '.#.....',
+        '..#....',
+        '...#...',
+        '....#..',
+        '.....#.',
+        '......#',
+      ),
+    );
+
+    expect(result.data.every((v) => v === 255)).toBe(true);
   });
 });
