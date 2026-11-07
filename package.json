@@ -13,7 +13,8 @@
     "typecheck": "tsc -b",
     "lint": "oxlint && oxfmt --check",
     "lint:fix": "oxlint --fix && oxfmt --write",
-    "sheetgen": "tsx scripts/sheetgen.ts"
+    "sheetgen": "tsx scripts/sheetgen.ts",
+    "accuracy": "tsx scripts/accuracy.ts"
   },
   "devEngines": {
     "packageManager": {
@@ -22,8 +23,10 @@
     }
   },
   "dependencies": {
+    "@tesseract.js-data/eng": "^1.0.0",
     "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "react-dom": "^19.3.1",
+    "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^5.10.0",

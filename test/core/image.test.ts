@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { countPixels, pixelAt, resizeRgba } from '../../src/core/ocr/image';
+import {
+  countPixels,
+  cropRgba,
+  pixelAt,
+  resizeRgba,
+} from '../../src/core/ocr/image';
 import { solidImage } from '../support/fixtures';
 
 describe('resizeRgba', () => {
@@ -38,5 +43,20 @@ describe('countPixels', () => {
     expect(countPixels(img, { x: 0, y: 0, w: 4, h: 4 }, isWhite)).toBe(4);
     expect(countPixels(img, { x: 1, y: 1, w: 3, h: 3 }, isWhite)).toBe(1);
     expect(countPixels(img, { x: 2, y: 2, w: 2, h: 2 }, isWhite)).toBe(0);
+  });
+});
+
+describe('cropRgba', () => {
+  it('copies the part of the image inside the rect', () => {
+    // A 3×2 image whose red channel numbers each pixel, 0 to 5.
+    const image = {
+      width: 3,
+      height: 2,
+      data: new Uint8Array([0, 1, 2, 3, 4, 5].flatMap((n) => [n, 0, 0, 255])),
+    };
+    const crop = cropRgba(image, { x: 1, y: 0, w: 2, h: 2 });
+
+    expect(crop).toMatchObject({ width: 2, height: 2 });
+    expect([0, 1, 2, 3].map((i) => crop.data[i * 4])).toEqual([1, 2, 4, 5]);
   });
 });

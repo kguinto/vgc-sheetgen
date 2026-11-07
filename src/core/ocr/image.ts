@@ -11,6 +11,17 @@ export type RgbaImage = {
   data: Uint8Array | Uint8ClampedArray;
 };
 
+/**
+ * An image with one brightness value per pixel (0 is black, 255 is white),
+ * row by row from the top left. This is what a field's crop becomes after
+ * it's cleaned up for reading.
+ */
+export type GrayImage = {
+  width: number;
+  height: number;
+  data: Uint8Array;
+};
+
 /** A decoded image, or the reason the file couldn't be used as one. */
 export type ImageResult =
   | { image: RgbaImage; problem?: undefined }
@@ -44,6 +55,19 @@ export function countPixels(
   }
 
   return count;
+}
+
+/** A copy of the part of an image inside `rect`. */
+export function cropRgba(img: RgbaImage, rect: Rect): RgbaImage {
+  const data = new Uint8Array(rect.w * rect.h * 4);
+
+  for (let y = 0; y < rect.h; y++) {
+    const start = ((rect.y + y) * img.width + rect.x) * 4;
+
+    data.set(img.data.subarray(start, start + rect.w * 4), y * rect.w * 4);
+  }
+
+  return { width: rect.w, height: rect.h, data };
 }
 
 /**

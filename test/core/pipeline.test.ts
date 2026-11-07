@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { readTeam } from '../../src/core/ocr/pipeline';
 import type { ImageResult } from '../../src/core/ocr/image';
 import { decodeImage } from '../../src/node/image';
+import { fakeEngine } from '../support/engine';
 import { fixtureFile, solidImage } from '../support/fixtures';
 
 const MOVES = 'console-1080/team-1-moves.jpg';
@@ -15,6 +16,7 @@ describe('readTeam', () => {
     ]) {
       const { screens, problems } = await readTeam(order.map(fixtureFile), {
         decodeImage,
+        engine: fakeEngine(),
       });
 
       expect(problems).toEqual([]);
@@ -40,7 +42,7 @@ describe('readTeam', () => {
         fixtureFile(MOVES),
         fixtureFile('console-720/team-2-moves.png'),
       ],
-      { decodeImage },
+      { decodeImage, engine: fakeEngine() },
     );
 
     expect(problems.map((p) => [p.input, p.code])).toEqual([
@@ -50,7 +52,10 @@ describe('readTeam', () => {
   });
 
   it('reports a missing tab only when the screenshots are otherwise fine', async () => {
-    const alone = await readTeam([fixtureFile(MOVES)], { decodeImage });
+    const alone = await readTeam([fixtureFile(MOVES)], {
+      decodeImage,
+      engine: fakeEngine(),
+    });
 
     expect(alone.problems.map((p) => p.code)).toEqual(['missing-screen']);
 
@@ -61,7 +66,7 @@ describe('readTeam', () => {
         fixtureFile(MOVES),
         { name: 'notes.txt', bytes: new TextEncoder().encode('hello') },
       ],
-      { decodeImage },
+      { decodeImage, engine: fakeEngine() },
     );
 
     expect(withBadFile.problems.map((p) => p.code)).toEqual([
@@ -71,7 +76,7 @@ describe('readTeam', () => {
     // "Two of the Moves & More tab" already says to use one of each.
     const twoOfOne = await readTeam(
       [fixtureFile(MOVES), fixtureFile('console-720/team-2-moves.png')],
-      { decodeImage },
+      { decodeImage, engine: fakeEngine() },
     );
 
     expect(twoOfOne.problems.map((p) => p.code)).toEqual(['same-screen']);
@@ -93,7 +98,7 @@ describe('readTeam', () => {
 
     const { screens, problems } = await readTeam(
       [named('blank'), fixtureFile(MOVES), named('square')],
-      { decodeImage: fakeDecode },
+      { decodeImage: fakeDecode, engine: fakeEngine() },
     );
 
     expect(screens.moves?.name).toBe(MOVES);
@@ -102,5 +107,39 @@ describe('readTeam', () => {
       ['blank.png', 'unknown-screen'],
       ['square.png', 'unsupported-size'],
     ]);
+  });
+
+  it("doesn't read any text when there are problems", async () => {
+    const engine = fakeEngine();
+    const { reads, problems } = await readTeam(
+      [fixtureFile(MOVES), fixtureFile('console-720/team-2-moves.png')],
+      { decodeImage, engine },
+    );
+
+    expect(problems).not.toEqual([]);
+    expect(reads).toEqual({});
+    expect(engine.calls).toEqual([]);
+  });
+
+  it('reads both screens, one field at a time', async () => {
+    const engine = fakeEngine();
+    const progress: number[] = [];
+    const { screens, reads } = await readTeam(
+      [fixtureFile(STATS), fixtureFile(MOVES)],
+      { decodeImage, engine, onProgress: (done) => progress.push(done) },
+    );
+
+    const total = screens.moves!.fields.length + screens.stats!.fields.length;
+
+    expect(reads.moves?.map((r) => r.key)).toEqual(
+      screens.moves!.fields.map((f) => f.key),
+    );
+    expect(reads.stats?.map((r) => r.key)).toEqual(
+      screens.stats!.fields.map((f) => f.key),
+    );
+    // Never more than one call to the recognizer at a time.
+    expect(engine.mostAtOnce).toBe(1);
+    // Progress counts the fields of both screens, in one sequence.
+    expect(progress).toEqual(Array.from({ length: total }, (_, i) => i + 1));
   });
 });

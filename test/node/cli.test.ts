@@ -19,6 +19,12 @@ describe('parseArguments', () => {
     });
   });
 
+  it('reads the debug folder', () => {
+    expect(parseArguments(['--debug-dir', 'tmp/debug', 'a.png']).debugDir).toBe(
+      'tmp/debug',
+    );
+  });
+
   it('defaults to no debugging and no log', () => {
     expect(parseArguments(['a.png'])).toEqual({
       debug: false,
