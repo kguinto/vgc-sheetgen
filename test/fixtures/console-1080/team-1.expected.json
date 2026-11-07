@@ -1,0 +1,96 @@
+{
+  "teamId": "0A0HABQMPR",
+  "trainerName": "Louie",
+  "pokemon": [
+    {
+      "species": "Tyranitar",
+      "ability": "Sand Stream",
+      "item": "Tyranitarite",
+      "moves": ["Protect", "Rock Slide", "Knock Off", "Low Kick"],
+      "stats": {
+        "hp": 175,
+        "atk": 175,
+        "def": 130,
+        "spa": 103,
+        "spd": 133,
+        "spe": 124
+      },
+      "alignment": { "plus": "spe", "minus": "spa" }
+    },
+    {
+      "species": "Whimsicott",
+      "ability": "Prankster",
+      "item": "Sitrus Berry",
+      "moves": ["Protect", "Moonblast", "Giga Drain", "Tailwind"],
+      "stats": {
+        "hp": 137,
+        "atk": 78,
+        "def": 133,
+        "spa": 113,
+        "spd": 127,
+        "spe": 136
+      },
+      "alignment": { "plus": "def", "minus": "atk" }
+    },
+    {
+      "species": "Indeedee",
+      "ability": "Psychic Surge",
+      "item": "Psychic Seed",
+      "moves": ["Expanding Force", "Trick Room", "Skill Swap", "Protect"],
+      "stats": {
+        "hp": 135,
+        "atk": 76,
+        "def": 107,
+        "spa": 157,
+        "spd": 115,
+        "spe": 128
+      },
+      "alignment": { "plus": "spe", "minus": "atk" }
+    },
+    {
+      "species": "Charizard",
+      "ability": "Solar Power",
+      "item": "Charizardite Y",
+      "moves": ["Protect", "Heat Wave", "Weather Ball", "Solar Beam"],
+      "stats": {
+        "hp": 153,
+        "atk": 93,
+        "def": 143,
+        "spa": 161,
+        "spd": 105,
+        "spe": 122
+      },
+      "alignment": { "plus": "def", "minus": "atk" }
+    },
+    {
+      "species": "Excadrill",
+      "ability": "Sand Rush",
+      "item": "Focus Sash",
+      "moves": ["Protect", "High Horsepower", "Iron Head", "Rock Slide"],
+      "stats": {
+        "hp": 185,
+        "atk": 187,
+        "def": 82,
+        "spa": 63,
+        "spd": 85,
+        "spe": 154
+      },
+      "alignment": { "plus": "spe", "minus": "spa" }
+    },
+    {
+      "species": "Milotic",
+      "ability": "Competitive",
+      "item": "Leftovers",
+      "moves": ["Scald", "Ice Beam", "Weather Ball", "Recover"],
+      "stats": {
+        "hp": 202,
+        "atk": 72,
+        "def": 144,
+        "spa": 122,
+        "spd": 145,
+        "spe": 101
+      },
+      "alignment": { "plus": "def", "minus": "atk" }
+    }
+  ]
+}

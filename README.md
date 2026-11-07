@@ -17,6 +17,7 @@ pnpm test        # vitest (test/**/*.test.ts)
 pnpm typecheck   # tsc -b
 pnpm lint        # oxlint + oxfmt --check
 pnpm lint:fix
+pnpm sheetgen <screenshot> <screenshot>  # read a Battle Team (in progress)
 ```
 
 ## License
