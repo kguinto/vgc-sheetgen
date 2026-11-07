@@ -1,0 +1,29 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "react", "unicorn", "oxc", "vitest"],
+  "categories": {
+    "correctness": "warn"
+  },
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/only-export-components": ["warn", { "allowConstantExport": true }]
+  },
+  "overrides": [
+    {
+      "files": ["src/core/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["node:*", "react", "react-dom", "react-dom/*"],
+                "message": "src/core must stay runtime-agnostic: no Node, DOM, or React imports."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
