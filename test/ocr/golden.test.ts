@@ -12,11 +12,12 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { readTeam } from '../../src/core/ocr/pipeline';
 import { decodeImage } from '../../src/node/image';
 import { createNodeEngine, type NodeEngine } from '../../src/node/tesseract';
+import { fixtureLayouts } from '../support/fixtures';
 
 const FIXTURES = path.join(import.meta.dirname, '../fixtures');
 
 /** Every `<layout>/<team>.expected.json`, with its two screenshots. */
-const fixtures = fs.readdirSync(FIXTURES).flatMap((layout) =>
+const fixtures = fixtureLayouts().flatMap((layout) =>
   fs
     .readdirSync(path.join(FIXTURES, layout))
     .filter((file) => file.endsWith('.expected.json'))

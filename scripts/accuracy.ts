@@ -15,6 +15,7 @@ import type { FieldResult } from '../src/core/ocr/read';
 import { ALIGNABLE_STAT_KEYS, STAT_KEYS } from '../src/core/team/types';
 import { decodeImage } from '../src/node/image';
 import { createNodeEngine } from '../src/node/tesseract';
+import { fixtureLayouts } from '../test/support/fixtures';
 
 const FIXTURES = path.join(import.meta.dirname, '../test/fixtures');
 
@@ -40,7 +41,7 @@ let total = 0;
 try {
   // Each fixture pair is `<team>-moves.*` and `<team>-stats.*`, next to
   // `<team>.expected.json`, in a folder per layout.
-  for (const layout of fs.readdirSync(FIXTURES)) {
+  for (const layout of fixtureLayouts()) {
     const dir = path.join(FIXTURES, layout);
 
     for (const file of fs.readdirSync(dir)) {
