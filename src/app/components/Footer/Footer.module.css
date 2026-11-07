@@ -1,0 +1,8 @@
+/* Sits at the bottom of the window on short pages, as wide as the content. */
+.footer {
+  width: 100%;
+  max-width: 900px;
+  margin: auto auto 0;
+  padding: 16px;
+  border-top: 1px solid var(--border);
+}

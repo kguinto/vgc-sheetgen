@@ -4,6 +4,33 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>VGC Sheetgen</title>
+    <script>
+      // Sets data-theme on <html> before the page is drawn, so it never
+      // flashes the wrong theme. It's inline, not bundled, so it runs first.
+      // The theme selector saves the choice under the same "theme" key.
+      (() => {
+        const root = document.documentElement;
+        const query = matchMedia('(prefers-color-scheme: dark)');
+        const saved = () => {
+          try {
+            const value = localStorage.getItem('theme');
+            // Anything other than an explicit choice means "follow the device".
+            return value === 'light' || value === 'dark' ? value : null;
+          } catch {
+            return null;
+          }
+        };
+        const apply = () => {
+          root.dataset.theme = saved() ?? (query.matches ? 'dark' : 'light');
+        };
+        apply();
+        query.addEventListener('change', apply);
+        // Another tab changed the choice.
+        addEventListener('storage', (event) => {
+          if (event.key === 'theme' || event.key === null) apply();
+        });
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
