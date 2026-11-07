@@ -1,4 +1,5 @@
 import type { ScreenshotProblem } from '../screenshot-problems';
+import type { Team } from '../team/types';
 import type { OcrEngine } from './engine';
 import type { ImageResult } from './image';
 import {
@@ -6,6 +7,7 @@ import {
   type InspectResult,
   type RecognizedScreen,
 } from './inspect';
+import { mergeTeam } from './merge';
 import { readFields, type FieldResult } from './read';
 import { getScreenPair, type ScreenPair } from './screens';
 
@@ -39,6 +41,8 @@ export type ReadTeamResult = {
    * problems, since nothing is read then.
    */
   reads: { moves?: FieldResult[]; stats?: FieldResult[] };
+  /** The team, put together from the reads. Absent when there were problems. */
+  team?: Team;
   /** Why some screenshots can't be used, each naming its screenshot. */
   problems: ScreenshotProblem[];
 };
@@ -48,8 +52,8 @@ export type ReadTeamResult = {
  * This is the one function both the command-line script and the web app
  * call, so they behave the same.
  *
- * So far it recognizes which tab each screenshot shows, and reads the text
- * of every field on both. Putting the team together will be added here.
+ * It recognizes which tab each screenshot shows, reads every field on both,
+ * and puts the team together from what was read.
  *
  * A screenshot that can't be used doesn't stop the others from being
  * checked: every problem is returned, and the caller decides what to do.
@@ -99,9 +103,10 @@ export async function readTeam(
     ),
   };
 
-  // TODO: Put the team together from the reads.
+  // Step 4: Put the team together from what was read.
+  const team = mergeTeam(reads.moves, reads.stats);
 
-  return { screens: pair, reads, problems: [] };
+  return { screens: pair, reads, team, problems: [] };
 }
 
 /**

@@ -17,7 +17,7 @@ describe('saveFieldCrops', () => {
     fs.rmSync(dir, { recursive: true });
   });
 
-  it("saves each field's crop and its cleaned-up version", async () => {
+  it("saves each field's crop and, for text, its cleaned-up version", async () => {
     const image = await loadFixture('console-720/team-2-stats.jpg');
     const screen = inspectScreenshot(image, 'stats.jpg').screen!;
     const out = path.join(dir, 'stats');
@@ -26,7 +26,12 @@ describe('saveFieldCrops', () => {
 
     const files = fs.readdirSync(out);
 
-    expect(files).toHaveLength(screen.fields.length * 2);
+    // Two images per field, except arrows, which only get the first.
+    const arrows = screen.fields.filter((f) => f.kind === 'arrow').length;
+
+    expect(files).toHaveLength(screen.fields.length * 2 - arrows);
+    expect(files).toContain('slot.0.arrows.spe.png');
+    expect(files).not.toContain('slot.0.arrows.spe.preprocessed.png');
     expect(files).toContain('slot.0.species.png');
     expect(files).toContain('slot.0.species.preprocessed.png');
   });

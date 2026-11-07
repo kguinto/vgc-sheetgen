@@ -5,14 +5,14 @@
  *   pnpm accuracy
  *
  * Prints each field read wrongly, then how many were read correctly. Use it
- * to check whether a change to how fields are cleaned up or read helps. (The
- * golden test, once the team is put together, will check the same thing.)
+ * to check whether a change to how fields are cleaned up or read helps, or
+ * to see which fields made the golden test (test/ocr/golden.test.ts) fail.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { readTeam } from '../src/core/ocr/pipeline';
 import type { FieldResult } from '../src/core/ocr/read';
-import { STAT_KEYS } from '../src/core/team/types';
+import { ALIGNABLE_STAT_KEYS, STAT_KEYS } from '../src/core/team/types';
 import { decodeImage } from '../src/node/image';
 import { createNodeEngine } from '../src/node/tesseract';
 
@@ -28,6 +28,8 @@ type ExpectedTeam = {
     item: string;
     moves: string[];
     stats: Record<string, number>;
+    /** The stats the nature raises and lowers, or null for a neutral one. */
+    alignment: { plus: string; minus: string } | null;
   }[];
 };
 
@@ -115,6 +117,19 @@ function expectedValues(team: ExpectedTeam): Map<string, string | number> {
 
     for (const stat of STAT_KEYS) {
       values.set(`${slot}.stats.${stat}`, p.stats[stat]!);
+    }
+
+    // Each stat's arrow: up for the one the nature raises, down for the one
+    // it lowers, none (blank) for the rest.
+    for (const stat of ALIGNABLE_STAT_KEYS) {
+      const arrow =
+        stat === p.alignment?.plus
+          ? 'up'
+          : stat === p.alignment?.minus
+            ? 'down'
+            : '';
+
+      values.set(`${slot}.arrows.${stat}`, arrow);
     }
   });
 

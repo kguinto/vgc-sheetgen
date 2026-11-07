@@ -51,6 +51,12 @@ export function parseField(kind: FieldKind, line: RecognizedLine): ParsedValue {
         confidence: lowestConfidence(idSymbols, line.confidence),
       };
     }
+
+    // Never happens: arrows are told apart by color (see `readArrow`), so
+    // they're never read as text or parsed. Here only so every kind of field
+    // is handled.
+    case 'arrow':
+      return { value: null, confidence };
   }
 }
 

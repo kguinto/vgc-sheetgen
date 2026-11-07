@@ -70,4 +70,30 @@ describe('readFields', () => {
       [2, 2],
     ]);
   });
+
+  it('reads arrows by color, without the recognizer', async () => {
+    const engine = fakeEngine();
+    const screen = screenWithFields();
+
+    // A pink ⇑ in the top-left, where the arrow field is.
+    for (let i = 0; i < 20; i++) screen.image.data.set([240, 70, 110], i * 4);
+
+    const [arrow] = await readFields(
+      {
+        ...screen,
+        fields: [
+          {
+            key: 'slot.0.arrows.spe',
+            rect: { x: 0, y: 0, w: 20, h: 2 },
+            kind: 'arrow',
+            required: false,
+          },
+        ],
+      },
+      engine,
+    );
+
+    expect(arrow).toMatchObject({ value: 'up', raw: 'up', confidence: 100 });
+    expect(engine.calls).toEqual([]);
+  });
 });

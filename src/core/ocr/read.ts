@@ -3,7 +3,7 @@ import type { Rect } from './image';
 import type { FieldKind, RecognizedScreen } from './inspect';
 import { parseField } from './parse';
 import { preprocess } from './preprocess';
-import { countTextPixels } from './signals';
+import { countTextPixels, readArrow } from './signals';
 
 /**
  * A field counts as blank when it has fewer text-colored pixels than this,
@@ -40,8 +40,21 @@ export async function readFields(
   const results: FieldResult[] = [];
 
   for (const { key, kind, rect } of screen.fields) {
-    // A blank field has nothing to read, so don't ask the recognizer.
-    if (countTextPixels(screen.image, rect) < MIN_TEXT_PIXELS) {
+    if (kind === 'arrow') {
+      // The nature's arrows are told apart by color, so there's no text to
+      // read: the value is 'up', 'down', or null.
+      const value = readArrow(screen.image, rect);
+
+      results.push({
+        key,
+        kind,
+        rect,
+        value,
+        raw: value ?? '',
+        confidence: 100,
+      });
+    } else if (countTextPixels(screen.image, rect) < MIN_TEXT_PIXELS) {
+      // A blank field has nothing to read, so don't ask the recognizer.
       results.push({ key, kind, rect, value: null, raw: '', confidence: 100 });
     } else {
       // Clean up the field's crop, read it with only the characters its

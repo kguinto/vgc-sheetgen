@@ -22,6 +22,10 @@ const LEFT_VALUE = { x: 215, w: 58 };
 const RIGHT_VALUE = { x: 565, w: 60 };
 const ROW_H = 38;
 
+// Where each stat's name is, which the nature's ⇑ or ⇓ follows.
+const LEFT_NAME = { x: 90, w: 130 };
+const RIGHT_NAME = { x: 440, w: 135 };
+
 export const console1080: LayoutProfile = {
   name: 'console-1080',
   width: 1920,
@@ -53,6 +57,13 @@ export const console1080: LayoutProfile = {
       spa: { ...RIGHT_VALUE, y: STAT_ROWS[0]!, h: ROW_H },
       spd: { ...RIGHT_VALUE, y: STAT_ROWS[1]!, h: ROW_H },
       spe: { ...RIGHT_VALUE, y: STAT_ROWS[2]!, h: ROW_H },
+    },
+    arrows: {
+      atk: { ...LEFT_NAME, y: STAT_ROWS[1]!, h: ROW_H },
+      def: { ...LEFT_NAME, y: STAT_ROWS[2]!, h: ROW_H },
+      spa: { ...RIGHT_NAME, y: STAT_ROWS[0]!, h: ROW_H },
+      spd: { ...RIGHT_NAME, y: STAT_ROWS[1]!, h: ROW_H },
+      spe: { ...RIGHT_NAME, y: STAT_ROWS[2]!, h: ROW_H },
     },
   },
 };
