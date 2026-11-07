@@ -9,5 +9,7 @@ export default defineConfig({
   test: {
     include: ['test/**/*.test.ts'],
     environment: 'node',
+    // Starting the text recognizer and reading takes a few seconds.
+    testTimeout: 30_000,
   },
 });

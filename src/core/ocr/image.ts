@@ -11,6 +11,17 @@ export type RgbaImage = {
   data: Uint8Array | Uint8ClampedArray;
 };
 
+/**
+ * An image with one brightness value per pixel (0 is black, 255 is white),
+ * row by row from the top left. This is what a field's crop becomes after
+ * it's cleaned up for reading.
+ */
+export type GrayImage = {
+  width: number;
+  height: number;
+  data: Uint8Array;
+};
+
 /** A decoded image, or the reason the file couldn't be used as one. */
 export type ImageResult =
   | { image: RgbaImage; problem?: undefined }
