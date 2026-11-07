@@ -39,4 +39,7 @@ export const ALLOWED_CHARACTERS: Record<FieldKind, string> = {
   digits: DIGITS,
   // "Team ID: XXXXXXXXXX"
   teamId: `${LETTERS}${DIGITS} :`,
+  // Never used: arrows are told apart by color (see `readArrow`), so they
+  // never reach the text recognizer. Listed only so every kind has an entry.
+  arrow: '',
 };

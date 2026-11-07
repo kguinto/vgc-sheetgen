@@ -1,5 +1,5 @@
 import type { ScreenshotProblem } from '../screenshot-problems';
-import type { StatKey } from '../team/types';
+import type { AlignableStatKey, StatKey } from '../team/types';
 import type { Rect } from './image';
 
 /** A position in pixels. */
@@ -54,6 +54,11 @@ export type LayoutProfile = {
     species: Rect;
     /** The number shown for each stat. */
     values: Record<StatKey, Rect>;
+    /**
+     * Where the nature's ⇑ or ⇓ can appear: just after each stat's name.
+     * HP can't be raised or lowered by a nature, so it has none.
+     */
+    arrows: Record<AlignableStatKey, Rect>;
   };
 };
 

@@ -2,7 +2,7 @@
 // numbers. The Moves & More tab (moves.ts) has the same header and grid of
 // six cards, so parts of this file mirror that one.
 
-import { STAT_KEYS } from '../../team/types';
+import { ALIGNABLE_STAT_KEYS, STAT_KEYS } from '../../team/types';
 import type { Rect } from '../image';
 import type { Field, FieldKind } from '../inspect';
 import { offsetRect, type LayoutProfile } from '../layout';
@@ -47,6 +47,15 @@ export const statsScreen: ScreenDefinition = {
           field(key('species'), at(rects.species), 'name', true),
           ...STAT_KEYS.map((stat) =>
             field(key(`stats.${stat}`), at(rects.values[stat]), 'digits', true),
+          ),
+          // The nature's arrows. Most stats have none, so none is required.
+          ...ALIGNABLE_STAT_KEYS.map((stat) =>
+            field(
+              key(`arrows.${stat}`),
+              at(rects.arrows[stat]),
+              'arrow',
+              false,
+            ),
           ),
         ];
       }),

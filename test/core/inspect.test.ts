@@ -19,7 +19,7 @@ const fixtures = [
     kind: 'stats',
     layout: 'console-1080',
     scale: 1,
-    fields: 44,
+    fields: 74,
   },
   {
     file: 'console-720/team-2-moves.jpg',
@@ -33,13 +33,14 @@ const fixtures = [
     kind: 'stats',
     layout: 'console-720',
     scale: 1.5,
-    fields: 43,
+    fields: 73,
   },
 ] as const;
 
 describe('inspectScreenshot', () => {
   // Header fields (Team ID and trainer name, or just the trainer name on a
-  // Switch) plus 7 per card.
+  // Switch), plus 7 per card on Moves & More (species, ability, item, four
+  // moves) and 12 on Stats (species, six stats, five arrows).
   it.each(fixtures)(
     'recognizes $file',
     async ({ file, kind, layout, scale, fields }) => {

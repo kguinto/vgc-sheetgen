@@ -17,7 +17,12 @@ export type FieldKind =
   /** A stat's number. */
   | 'digits'
   /** The "Team ID: XXXXXXXXXX" line at the top. */
-  | 'teamId';
+  | 'teamId'
+  /**
+   * Whether a stat has the nature's ⇑ or ⇓ next to it. Read by its color,
+   * not by the text recognizer.
+   */
+  | 'arrow';
 
 /** A piece of text to read: where it is on the screen, and what it holds. */
 export type Field = {
