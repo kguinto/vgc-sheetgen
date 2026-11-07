@@ -17,21 +17,27 @@ const unreadable = (message: string): ScreenshotProblem => ({
 /** Decodes a PNG or JPEG file, identified by its contents, to RGBA. */
 export function decodeImage(bytes: Uint8Array): ImageResult {
   const isPng = startsWith(bytes, PNG_SIGNATURE);
+
   if (!isPng && !startsWith(bytes, JPEG_SIGNATURE)) {
     return { problem: unreadable('Not a PNG or JPEG image.') };
   }
+
   // The decoders throw on corrupt or truncated data.
   try {
     if (isPng) {
       const png = PNG.sync.read(Buffer.from(bytes));
+
       return {
         image: { width: png.width, height: png.height, data: png.data },
       };
     }
+
     const img = jpeg.decode(bytes, { useTArray: true, formatAsRGBA: true });
+
     return { image: { width: img.width, height: img.height, data: img.data } };
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
+
     return { problem: unreadable(`The image is damaged (${reason}).`) };
   }
 }

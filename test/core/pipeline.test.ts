@@ -20,6 +20,7 @@ describe('readTeam', () => {
       ],
       { decodeImage },
     );
+
     expect(problems).toEqual([]);
     expect(screenshots).toEqual([
       {
@@ -52,6 +53,7 @@ describe('readTeam', () => {
             : decodeImage(bytes),
       },
     );
+
     expect(screenshots.map((s) => s.name)).toEqual([
       'console-720/team-2-moves.png',
     ]);

@@ -50,19 +50,39 @@ export async function readTeam(
 ): Promise<ReadTeamResult> {
   const summaries: ScreenshotSummary[] = [];
   const problems: ScreenshotProblem[] = [];
+
+  // Each screenshot is handled on its own, so a problem with one doesn't
+  // stop the others from being checked. Problems are tagged with the
+  // screenshot's name, so the user knows which file to fix.
   for (const { name, bytes } of screenshots) {
-    const decoded = await options.decodeImage(bytes);
-    if (decoded.problem) {
-      problems.push({ ...decoded.problem, input: name });
+    // Step 1: Turn the file into pixels. This fails if it isn't a PNG or
+    // JPEG, or is damaged.
+    const { image, problem: decodeProblem } = await options.decodeImage(bytes);
+
+    if (decodeProblem) {
+      problems.push({ ...decodeProblem, input: name });
       continue;
     }
-    const { width, height } = decoded.image;
-    const selected = selectLayout(decoded.image, LAYOUTS);
-    if (selected.problem) {
-      problems.push({ ...selected.problem, input: name });
+
+    // Step 2: Work out which console it's from by its size, which tells us
+    // where everything is on the screen. This fails if it isn't 16:9.
+    const { layout, problem: layoutProblem } = selectLayout(image, LAYOUTS);
+
+    if (layoutProblem) {
+      problems.push({ ...layoutProblem, input: name });
       continue;
     }
-    summaries.push({ name, width, height, layout: selected.layout.name });
+
+    // Step 3: Note what was found, for the caller to show.
+    // TODO: Recognize which tab the screenshot shows (Moves & More or
+    // Stats), and find each Pokémon's card on it.
+    const { width, height } = image;
+
+    summaries.push({ name, width, height, layout: layout.name });
   }
+
+  // TODO: Check there's exactly one screenshot of each tab, read the text
+  // on each, and put the team together.
+
   return { screenshots: summaries, problems };
 }

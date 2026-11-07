@@ -17,6 +17,7 @@ const USAGE = 'Usage: pnpm sheetgen <screenshot> <screenshot>';
 // Step 1: Expect exactly two screenshots, one of the Moves & More tab and
 // one of the Stats tab, in either order.
 const paths = process.argv.slice(2);
+
 if (paths.length !== 2) {
   console.error(USAGE);
   process.exit(1);
@@ -69,6 +70,7 @@ function readFile(path: string): Uint8Array {
     return fs.readFileSync(path);
   } catch (err) {
     const code = (err as NodeJS.ErrnoException).code;
+
     console.error(
       `${path}: ${code === 'ENOENT' ? 'no such file' : `can't read (${code ?? err})`}`,
     );

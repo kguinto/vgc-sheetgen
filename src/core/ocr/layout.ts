@@ -87,7 +87,9 @@ export function selectLayout(
       ),
     ) ??
     layouts.find((l) => Math.abs(l.width / l.height - aspect) / aspect < 0.01);
+
   if (layout) return { layout };
+
   return {
     problem: {
       code: 'unsupported-size',

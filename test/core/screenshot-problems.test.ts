@@ -7,6 +7,7 @@ describe('formatScreenshotProblem', () => {
       code: 'unreadable-image',
       message: 'Not a PNG or JPEG image.',
     } as const;
+
     expect(formatScreenshotProblem(problem)).toBe('Not a PNG or JPEG image.');
     expect(formatScreenshotProblem({ ...problem, input: 'a.png' })).toBe(
       'a.png: Not a PNG or JPEG image.',

@@ -13,12 +13,14 @@ describe('decodeImage', () => {
     const { image } = decodeImage(
       fs.readFileSync(path.join(FIXTURES, 'console-720', name)),
     );
+
     expect(image).toMatchObject({ width: 1280, height: 720 });
     expect(image?.data).toHaveLength(1280 * 720 * 4);
   });
 
   it('reports other formats', () => {
     const { problem } = decodeImage(new TextEncoder().encode('GIF89a'));
+
     expect(problem).toEqual({
       code: 'unreadable-image',
       message: 'Not a PNG or JPEG image.',
@@ -27,6 +29,7 @@ describe('decodeImage', () => {
 
   it('reports a damaged image', () => {
     const truncated = fs.readFileSync(JPEG).subarray(0, 1000);
+
     expect(decodeImage(truncated).problem?.code).toBe('unreadable-image');
   });
 });

@@ -3,6 +3,7 @@ import { selectLayout } from '../../src/core/ocr/layout';
 import { console1080 } from '../../src/core/ocr/layouts/console-1080';
 import { console720 } from '../../src/core/ocr/layouts/console-720';
 import { LAYOUTS } from '../../src/core/ocr/layouts';
+
 const pick = (width: number, height: number) =>
   selectLayout({ width, height }, LAYOUTS).layout?.name;
 
@@ -20,6 +21,7 @@ describe('selectLayout', () => {
 
   it('reports other aspect ratios', () => {
     const { problem } = selectLayout({ width: 1024, height: 768 }, LAYOUTS);
+
     expect(problem?.code).toBe('unsupported-size');
     expect(problem?.message).toContain('This one is 1024×768.');
   });
