@@ -1,4 +1,4 @@
-import type { ScreenshotProblem } from '../screenshot-problems';
+import type { ScreenshotProblem } from './screenshot-problems';
 import { resizeRgba, type Rect, type RgbaImage } from './image';
 import { selectLayout } from './layout';
 import { LAYOUTS } from './layouts';

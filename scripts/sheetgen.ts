@@ -23,7 +23,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { readTeam } from '../src/core/ocr/pipeline';
-import { formatScreenshotProblem } from '../src/core/screenshot-problems';
+import { formatScreenshotProblem } from '../src/core/ocr/screenshot-problems';
 import { formatTeam } from '../src/core/team/format';
 import { renderTeamSheet } from '../src/core/teamsheet/render';
 import { checkOutputPath, parseArguments, readFiles } from '../src/node/cli';

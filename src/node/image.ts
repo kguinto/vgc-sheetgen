@@ -1,30 +1,23 @@
 import jpeg from 'jpeg-js';
 import { PNG } from 'pngjs';
-import type { GrayImage, ImageResult, RgbaImage } from '../core/ocr/image';
-import type { ScreenshotProblem } from '../core/screenshot-problems';
-
-const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47];
-const JPEG_SIGNATURE = [0xff, 0xd8, 0xff];
-
-const startsWith = (bytes: Uint8Array, signature: number[]) =>
-  signature.every((b, i) => bytes[i] === b);
-
-const unreadable = (message: string): ScreenshotProblem => ({
-  code: 'unreadable-image',
-  message,
-});
+import {
+  damagedImage,
+  imageFormat,
+  notAnImage,
+  type GrayImage,
+  type ImageResult,
+  type RgbaImage,
+} from '../core/ocr/image';
 
 /** Decodes a PNG or JPEG file, identified by its contents, to RGBA. */
 export async function decodeImage(bytes: Uint8Array): Promise<ImageResult> {
-  const isPng = startsWith(bytes, PNG_SIGNATURE);
+  const format = imageFormat(bytes);
 
-  if (!isPng && !startsWith(bytes, JPEG_SIGNATURE)) {
-    return { problem: unreadable('Not a PNG or JPEG image.') };
-  }
+  if (!format) return { problem: notAnImage() };
 
   // The decoders throw on corrupt or truncated data.
   try {
-    if (isPng) {
+    if (format === 'png') {
       const png = PNG.sync.read(Buffer.from(bytes));
 
       return {
@@ -38,7 +31,7 @@ export async function decodeImage(bytes: Uint8Array): Promise<ImageResult> {
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
 
-    return { problem: unreadable(`The image is damaged (${reason}).`) };
+    return { problem: damagedImage(reason) };
   }
 }
 

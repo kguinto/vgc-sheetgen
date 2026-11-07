@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatScreenshotProblem } from '../../src/core/screenshot-problems';
+import { formatScreenshotProblem } from '../../src/core/ocr/screenshot-problems';
 
 describe('formatScreenshotProblem', () => {
   it('names the input when there is one', () => {

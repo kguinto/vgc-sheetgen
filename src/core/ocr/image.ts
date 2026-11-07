@@ -1,4 +1,4 @@
-import type { ScreenshotProblem } from '../screenshot-problems';
+import type { ScreenshotProblem } from './screenshot-problems';
 
 /**
  * A screenshot as raw pixels, after it's been decoded from its PNG or JPEG
@@ -26,6 +26,38 @@ export type GrayImage = {
 export type ImageResult =
   | { image: RgbaImage; problem?: undefined }
   | { image?: undefined; problem: ScreenshotProblem };
+
+const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47];
+const JPEG_SIGNATURE = [0xff, 0xd8, 0xff];
+
+/**
+ * Whether a file is a PNG or a JPEG, from its first few bytes, which every
+ * file of each kind starts with. `null` if it's neither. Used before
+ * decoding, so a file that isn't an image gets a clear message.
+ */
+export function imageFormat(bytes: Uint8Array): 'png' | 'jpeg' | null {
+  const startsWith = (signature: number[]) =>
+    signature.every((b, i) => bytes[i] === b);
+
+  if (startsWith(PNG_SIGNATURE)) return 'png';
+
+  if (startsWith(JPEG_SIGNATURE)) return 'jpeg';
+
+  return null;
+}
+
+/** The problem for a file that isn't a PNG or JPEG. */
+export function notAnImage(): ScreenshotProblem {
+  return { code: 'unreadable-image', message: 'Not a PNG or JPEG image.' };
+}
+
+/** The problem for a PNG or JPEG that couldn't be decoded. */
+export function damagedImage(reason: string): ScreenshotProblem {
+  return {
+    code: 'unreadable-image',
+    message: `The image is damaged (${reason}).`,
+  };
+}
 
 /** A rectangle in pixels: its top-left corner, width, and height. */
 export type Rect = { x: number; y: number; w: number; h: number };
