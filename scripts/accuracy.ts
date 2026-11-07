@@ -5,8 +5,8 @@
  *   pnpm accuracy
  *
  * Prints each field read wrongly, then how many were read correctly. Use it
- * to check whether a change to how fields are cleaned up or read helps. (The
- * golden test, once the team is put together, will check the same thing.)
+ * to check whether a change to how fields are cleaned up or read helps, or
+ * to see which fields made the golden test (test/ocr/golden.test.ts) fail.
  */
 import fs from 'node:fs';
 import path from 'node:path';
