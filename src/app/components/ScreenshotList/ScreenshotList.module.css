@@ -1,0 +1,90 @@
+.list {
+  list-style: none;
+  margin: var(--gap) 0 0;
+  padding: 0;
+  display: grid;
+  /* Two side by side: one screenshot of each tab. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--gap);
+}
+
+@media (max-width: 520px) {
+  .list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* The thumbnail, as a button that shows the screenshot at full size. */
+.open {
+  display: block;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius);
+  background: none;
+  cursor: zoom-in;
+}
+
+.open:hover:not(:disabled) {
+  background: none;
+}
+
+/* Switch screenshots are 16:9; others are cropped to fit rather than
+   stretched. */
+.image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--color-accent-soft);
+  transition: opacity 150ms;
+}
+
+.open:hover .image {
+  opacity: 0.85;
+}
+
+.name {
+  overflow: hidden;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A small round button on the thumbnail's top-right corner. It's always
+   shown, since phones have no hover. It sits on the screenshot rather than
+   the page, so it looks the same in both themes: a dark, see-through circle
+   with a white X, which stands out on the game's bright screens. */
+.remove {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: rgb(0 0 0 / 0.55);
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+
+.remove:hover:not(:disabled) {
+  background: rgb(0 0 0 / 0.75);
+}
+
+.remove:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}

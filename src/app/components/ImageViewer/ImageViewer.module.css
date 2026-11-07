@@ -1,0 +1,61 @@
+.dialog {
+  max-width: 95vw;
+  max-height: 95vh;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  overflow: hidden;
+}
+
+/* It takes focus when it opens, but the whole dialog doesn't need an
+   outline for that. */
+.dialog:focus {
+  outline: none;
+}
+
+.dialog::backdrop {
+  background: rgb(0 0 0 / 0.75);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 8px 16px;
+  font-size: 0.95rem;
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Just the X: no circle around it, even on hover. */
+.close {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  color: var(--color-muted);
+  transition: color 150ms;
+}
+
+.close:hover:not(:disabled) {
+  background: none;
+  color: var(--color-text);
+}
+
+/* As large as fits, leaving room for the header. */
+.image {
+  display: block;
+  max-width: 95vw;
+  max-height: calc(95vh - 50px);
+  object-fit: contain;
+}

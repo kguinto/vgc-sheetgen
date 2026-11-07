@@ -1,0 +1,33 @@
+.zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 40px 16px;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color 150ms,
+    background-color 150ms;
+}
+
+.zone:hover,
+.zone.dragging {
+  border-color: var(--color-muted);
+  background: var(--color-accent-soft);
+}
+
+.zone:focus-within {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+/* Hidden, but still focusable, so the zone works from the keyboard. */
+.input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}

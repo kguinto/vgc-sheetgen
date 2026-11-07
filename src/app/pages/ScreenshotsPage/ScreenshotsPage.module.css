@@ -1,0 +1,8 @@
+.dropTitle {
+  font-weight: 600;
+}
+
+.error {
+  margin: var(--gap) 0 0;
+  font-size: 0.95rem;
+}
