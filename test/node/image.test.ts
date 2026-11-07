@@ -12,6 +12,7 @@ describe('decodeImage', () => {
     const img = decodeImage(
       fs.readFileSync(path.join(FIXTURES, 'console-720', name)),
     );
+
     expect(img).toMatchObject({ width: 1280, height: 720 });
     expect(img.data).toHaveLength(1280 * 720 * 4);
   });

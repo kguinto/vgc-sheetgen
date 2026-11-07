@@ -17,11 +17,13 @@ function fail(message: string): never {
 }
 
 const files = process.argv.slice(2);
+
 if (files.length !== 2) fail(USAGE);
 
 // Decode both before printing anything, so a bad file fails the whole run.
 const images = files.map((file) => {
   if (!fs.existsSync(file)) fail(`No such file: ${file}\n${USAGE}`);
+
   try {
     return { file, image: decodeImage(fs.readFileSync(file)) };
   } catch (err) {
