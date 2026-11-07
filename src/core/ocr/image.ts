@@ -57,6 +57,19 @@ export function countPixels(
   return count;
 }
 
+/** A copy of the part of an image inside `rect`. */
+export function cropRgba(img: RgbaImage, rect: Rect): RgbaImage {
+  const data = new Uint8Array(rect.w * rect.h * 4);
+
+  for (let y = 0; y < rect.h; y++) {
+    const start = ((rect.y + y) * img.width + rect.x) * 4;
+
+    data.set(img.data.subarray(start, start + rect.w * 4), y * rect.w * 4);
+  }
+
+  return { width: rect.w, height: rect.h, data };
+}
+
 /**
  * Scales an image to a new size, e.g. a 1280×720 Switch screenshot up to
  * 1920×1080 so it lines up with positions measured on a Switch 2 screenshot.

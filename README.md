@@ -17,7 +17,7 @@ pnpm test        # vitest (test/**/*.test.ts)
 pnpm typecheck   # tsc -b
 pnpm lint        # oxlint + oxfmt --check
 pnpm lint:fix
-pnpm sheetgen [--debug] [--log <file>] <screenshot> <screenshot>  # read a Battle Team (in progress)
+pnpm sheetgen [--debug] [--debug-dir <dir>] [--log <file>] <screenshot> <screenshot>  # read a Battle Team (in progress)
 pnpm accuracy    # how many fixture fields are read correctly
 ```
 

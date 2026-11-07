@@ -11,6 +11,8 @@ export type Arguments = {
   debug: boolean;
   /** The --log file, if one was given. */
   logPath?: string;
+  /** The --debug-dir folder, if one was given. */
+  debugDir?: string;
   /** The screenshot paths, in the order given. */
   paths: string[];
   /** Node's message if the command line couldn't be read, e.g. an unknown flag. */
@@ -29,11 +31,17 @@ export function parseArguments(argv: string[]): Arguments {
       options: {
         debug: { type: 'boolean', default: false },
         log: { type: 'string' },
+        'debug-dir': { type: 'string' },
       },
       allowPositionals: true,
     });
 
-    return { debug: values.debug, logPath: values.log, paths: positionals };
+    return {
+      debug: values.debug,
+      logPath: values.log,
+      debugDir: values['debug-dir'],
+      paths: positionals,
+    };
   } catch (err) {
     return {
       debug: false,

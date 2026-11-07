@@ -1,9 +1,8 @@
 import { createRequire } from 'node:module';
 import path from 'node:path';
-import { PNG } from 'pngjs';
 import { createWorker, OEM, PSM } from 'tesseract.js';
 import type { OcrEngine, RecognizedLine } from '../core/ocr/engine';
-import type { GrayImage } from '../core/ocr/image';
+import { encodeGrayPng } from './image';
 
 const require = createRequire(import.meta.url);
 
@@ -43,6 +42,7 @@ export async function createNodeEngine(): Promise<NodeEngine> {
         currentWhitelist = whitelist;
       }
 
+      // Tesseract takes image files, so the crop is encoded as a PNG.
       const { data } = await worker.recognize(
         encodeGrayPng(image),
         {},
@@ -70,15 +70,4 @@ export async function createNodeEngine(): Promise<NodeEngine> {
       await worker.terminate();
     },
   };
-}
-
-/** Tesseract takes image files, so a grayscale crop is encoded as a PNG. */
-function encodeGrayPng(image: GrayImage): Buffer {
-  const png = new PNG({ width: image.width, height: image.height });
-
-  image.data.forEach((value, i) =>
-    png.data.set([value, value, value, 255], i * 4),
-  );
-
-  return PNG.sync.write(png);
 }
