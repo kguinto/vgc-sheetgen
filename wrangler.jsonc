@@ -1,0 +1,15 @@
+// Deploys the web app to Cloudflare as a Worker that only serves the files
+// built into dist/. There's no server code: everything runs in the browser.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "vgc-sheetgen",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist",
+  },
+  // Cloudflare creates the DNS record and the certificate for this hostname
+  // on deploy, so don't add a DNS record for it by hand.
+  "routes": [{ "pattern": "sheetgen.kguinto.dev", "custom_domain": true }],
+  // Serve the app only at the address above, not at a workers.dev address too.
+  "workers_dev": false,
+}
