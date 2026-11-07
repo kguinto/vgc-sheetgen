@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import jpeg from 'jpeg-js';
 import { PNG } from 'pngjs';
 import type { RgbaImage } from '../core/ocr/image';
@@ -23,4 +24,26 @@ export function decodeImage(bytes: Uint8Array): RgbaImage {
   }
 
   throw new Error('Unsupported image format: expected PNG or JPEG');
+}
+
+/**
+ * A screenshot file that can't be used: missing, unreadable, or not a PNG
+ * or JPEG. Its message is meant to be shown to the user as is.
+ */
+export class ImageFileError extends Error {
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'ImageFileError';
+  }
+}
+
+/** Reads and decodes a screenshot file. */
+export function loadImage(file: string): RgbaImage {
+  if (!fs.existsSync(file)) throw new ImageFileError(`No such file: ${file}`);
+  try {
+    return decodeImage(fs.readFileSync(file));
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
+    throw new ImageFileError(`Can't read ${file}: ${reason}`, { cause: err });
+  }
 }
