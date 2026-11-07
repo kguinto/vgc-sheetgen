@@ -1,0 +1,79 @@
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px 0;
+}
+
+.label {
+  color: var(--color-muted);
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A thin bar in the text color, on a faint track. */
+.bar {
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-accent-soft);
+  color: var(--color-text);
+  overflow: hidden;
+}
+
+.bar::-webkit-progress-bar {
+  background: var(--color-accent-soft);
+}
+
+.bar::-webkit-progress-value {
+  background: var(--color-text);
+  border-radius: 999px;
+  transition: width 150ms;
+}
+
+.bar::-moz-progress-bar {
+  background: var(--color-text);
+  border-radius: 999px;
+}
+
+/* With no value yet: a short stripe sliding across, to show it's busy. */
+.bar:indeterminate {
+  background:
+    linear-gradient(90deg, transparent, var(--color-text), transparent) 0 0 /
+      30% 100% no-repeat,
+    var(--color-accent-soft);
+  animation: slide 1.2s ease-in-out infinite;
+}
+
+.bar:indeterminate::-webkit-progress-bar {
+  background: transparent;
+}
+
+.bar:indeterminate::-moz-progress-bar {
+  background: transparent;
+}
+
+@keyframes slide {
+  from {
+    background-position:
+      -30% 0,
+      0 0;
+  }
+
+  to {
+    background-position:
+      130% 0,
+      0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar:indeterminate {
+    animation: none;
+    background-position:
+      50% 0,
+      0 0;
+  }
+}

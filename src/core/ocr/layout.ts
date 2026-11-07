@@ -41,6 +41,13 @@ export type LayoutProfile = {
    * then top to bottom.
    */
   cards: Point[];
+  /**
+   * The whole card, from its top-left corner (see `cards`), with a few
+   * pixels around it and the Pokémon's picture, which sticks out above the
+   * card. Used to show the card next to what was read from it; nothing is
+   * read from this box.
+   */
+  cardBox: Rect;
   /** Where each field is on a card on the Moves & More tab. */
   movesCard: {
     species: Rect;

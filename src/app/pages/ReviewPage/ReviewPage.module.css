@@ -1,0 +1,49 @@
+/* What went wrong, and what to do about it. */
+.message {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 16px 0;
+}
+
+.message p,
+.message ul {
+  margin: 0;
+}
+
+.trainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 32px;
+  margin: calc(var(--gap) * 1.5) 0 var(--gap);
+}
+
+.trainer div {
+  display: flex;
+  gap: 8px;
+}
+
+.trainer dt {
+  color: var(--color-muted);
+}
+
+.trainer dd {
+  margin: 0;
+}
+
+/* Two Pokémon to a row, like the game's grid; one on narrow screens. */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (max-width: 720px) {
+  .cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

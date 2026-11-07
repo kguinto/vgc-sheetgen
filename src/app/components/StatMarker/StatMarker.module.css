@@ -1,0 +1,21 @@
+.up,
+.down {
+  width: 10px;
+  height: 10px;
+  margin-left: 5px;
+  vertical-align: -1px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The game's own colors, readable in both themes. */
+.up {
+  color: #e2456f;
+}
+
+.down {
+  color: #3f86e8;
+}

@@ -37,6 +37,9 @@ export const console1080: LayoutProfile = {
   },
   tabs: { moves: { x: 700, y: 224 }, stats: { x: 1200, y: 224 } },
   cards: CARD_Y.flatMap((y) => CARD_X.map((x) => ({ x, y }))),
+  // Measured on both tabs: a card spans 750×194 from its corner, and the
+  // Pokémon's picture reaches about 24px above it.
+  cardBox: { x: -4, y: -28, w: 758, h: 226 },
   movesCard: {
     species: { x: 81, y: 4, w: 234, h: 50 },
     ability: { x: 87, y: 53, w: 355, h: 44 },

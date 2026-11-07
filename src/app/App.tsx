@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { PageLayout } from './components/PageLayout/PageLayout';
 import { StepIndicator } from './components/StepIndicator/StepIndicator';
 import { StepNav } from './components/StepNav/StepNav';
+import { useReadTeam } from './hooks/useReadTeam';
 import { ReviewPage } from './pages/ReviewPage/ReviewPage';
 import {
   SCREENSHOTS_NEEDED,
@@ -22,8 +23,18 @@ export function App() {
   // on to the next step and coming back.
   const [screenshots, setScreenshots] = useState<File[]>([]);
 
-  // Each step needs what the one before it produced.
-  const canContinue = page !== 0 || screenshots.length === SCREENSHOTS_NEEDED;
+  // Reading starts on reaching Review. Going back doesn't stop it, and
+  // returning with the same screenshots doesn't start it again.
+  const { state: read, retry } = useReadTeam(page >= 1 ? screenshots : null);
+
+  // Each step needs what the one before it produced: both screenshots, then
+  // a team read from them.
+  const canContinue =
+    page === 0
+      ? screenshots.length === SCREENSHOTS_NEEDED
+      : page === 1
+        ? read.status === 'done' && !!read.result.team
+        : true;
 
   return (
     <PageLayout
@@ -43,7 +54,14 @@ export function App() {
       {page === 0 && (
         <ScreenshotsPage screenshots={screenshots} onChange={setScreenshots} />
       )}
-      {page === 1 && <ReviewPage screenshots={screenshots} />}
+      {page === 1 && (
+        <ReviewPage
+          screenshots={screenshots}
+          read={read}
+          onRetry={retry}
+          onChangeScreenshots={() => setPage(0)}
+        />
+      )}
       {page === 2 && <TeamListPage />}
     </PageLayout>
   );

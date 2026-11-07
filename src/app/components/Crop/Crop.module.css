@@ -1,0 +1,27 @@
+/* The crop, as a button that shows it larger. */
+.open {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  cursor: zoom-in;
+}
+
+.open:hover:not(:disabled) {
+  background: none;
+}
+
+.crop {
+  display: block;
+  width: 100%;
+  border-radius: 6px;
+  /* The cards' purple, shown until the crop is drawn. */
+  background: #6c63b5;
+  transition: opacity 150ms;
+}
+
+.open:hover .crop {
+  opacity: 0.85;
+}
