@@ -12,12 +12,22 @@ import {
 import { ProgressBar } from '../../components/ProgressBar/ProgressBar';
 import { ScreenshotList } from '../../components/ScreenshotList/ScreenshotList';
 import type { ReadState } from '../../hooks/useReadTeam';
+import type { Team as TeamType } from '../../../core/team/types';
+import type { PlayerDetails as PlayerDetailsType } from '../../../core/teamsheet/player';
+import { PlayerDetails } from '../../components/PlayerDetails/PlayerDetails';
 import styles from './ReviewPage.module.css';
 
 type Props = {
   /** The two screenshots, shown at the top to compare against. */
   screenshots: File[];
   read: ReadState;
+  /** The team as read and then corrected by the user, once there's one. */
+  team?: TeamType;
+  /** Changes the team, starting from its current state. */
+  onTeamChange: (change: (team: TeamType) => TeamType) => void;
+  /** What the player fills in at the top of the team list. */
+  player: PlayerDetailsType;
+  onPlayerChange: (player: PlayerDetailsType) => void;
   /** Tries reading again, after it failed. */
   onRetry: () => void;
   /** Goes back to the first step, to change the screenshots. */
@@ -31,6 +41,10 @@ type Props = {
 export function ReviewPage({
   screenshots,
   read,
+  team,
+  onTeamChange,
+  player,
+  onPlayerChange,
   onRetry,
   onChangeScreenshots,
 }: Props) {
@@ -64,8 +78,14 @@ export function ReviewPage({
             Try again
           </button>
         </div>
-      ) : read.result.team ? (
-        <Team result={read.result} />
+      ) : team ? (
+        <Team
+          result={read.result}
+          team={team}
+          onChange={onTeamChange}
+          player={player}
+          onPlayerChange={onPlayerChange}
+        />
       ) : (
         <div className={styles.message} role="alert">
           <p>These screenshots can't be used:</p>
@@ -85,11 +105,24 @@ export function ReviewPage({
   );
 }
 
-/** The trainer, then each Pokémon with its cards from both screenshots. */
-function Team({ result }: { result: ReadTeamResult }) {
-  const { team, screens, reads } = result;
-
-  if (!team) return null;
+/**
+ * The player's details for the top of the form, then each Pokémon with its
+ * cards from both screenshots, all editable.
+ */
+function Team({
+  result,
+  team,
+  onChange,
+  player,
+  onPlayerChange,
+}: {
+  result: ReadTeamResult;
+  team: TeamType;
+  onChange: Props['onTeamChange'];
+  player: PlayerDetailsType;
+  onPlayerChange: Props['onPlayerChange'];
+}) {
+  const { screens, reads } = result;
 
   // The team's first Pokémon is on the first of these cards, and so on.
   const cards = teamCards(reads.moves ?? [], reads.stats ?? []);
@@ -104,19 +137,14 @@ function Team({ result }: { result: ReadTeamResult }) {
 
   return (
     <>
-      <dl className={styles.trainer}>
-        <div>
-          <dt>Trainer</dt>
-          <dd>{team.trainerName || '—'}</dd>
-        </div>
-        {/* Switch screenshots don't show the Team ID. */}
-        {team.teamId && (
-          <div>
-            <dt>Team ID</dt>
-            <dd>{team.teamId}</dd>
-          </div>
-        )}
-      </dl>
+      <PlayerDetails
+        details={player}
+        onChange={onPlayerChange}
+        trainerName={team.trainerName}
+        onTrainerNameChange={(trainerName) =>
+          onChange((t) => ({ ...t, trainerName }))
+        }
+      />
 
       <ol className={styles.cards}>
         {team.pokemon.map((pokemon, i) => (
@@ -124,6 +152,12 @@ function Team({ result }: { result: ReadTeamResult }) {
             <PokemonCard
               position={i + 1}
               pokemon={pokemon}
+              onChange={(changed) =>
+                onChange((t) => ({
+                  ...t,
+                  pokemon: t.pokemon.map((p, j) => (j === i ? changed : p)),
+                }))
+              }
               movesCrop={crop(screens.moves, cards[i])}
               statsCrop={crop(screens.stats, cards[i])}
             />

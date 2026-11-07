@@ -161,6 +161,25 @@ button.primary:hover:not(:disabled) {
   background: color-mix(in srgb, var(--color-accent) 85%, var(--color-bg));
 }
 
+/* Text inputs and dropdowns. (File inputs are hidden behind the drop
+   zone, so they're left alone.) */
+input:not([type='file']),
+select {
+  min-width: 0;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+
+input:not([type='file']):focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 1px;
+}
+
 /* Secondary text: explanations and counts. */
 .hint {
   color: var(--color-muted);

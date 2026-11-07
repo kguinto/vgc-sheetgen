@@ -1,10 +1,17 @@
+import { useId } from 'react';
 import type { Rect, RgbaImage } from '../../../core/ocr/image';
-import { natureFromAlignment, shortStatName } from '../../../core/team/natures';
+import {
+  formatAlignment,
+  NATURES,
+  shortStatName,
+} from '../../../core/team/natures';
 import {
   STAT_KEYS,
   type PokemonSet,
+  type StatAlignment,
   type StatKey,
 } from '../../../core/team/types';
+import { Combobox } from '../Combobox/Combobox';
 import { Crop } from '../Crop/Crop';
 import { StatMarker } from '../StatMarker/StatMarker';
 import styles from './PokemonCard.module.css';
@@ -16,6 +23,8 @@ type Props = {
   /** Its place on the team, from 1. */
   position: number;
   pokemon: PokemonSet;
+  /** Called with the Pokémon as changed by the user. */
+  onChange: (pokemon: PokemonSet) => void;
   /** Its card on the Moves & More tab, to check the values against. */
   movesCrop?: CardCrop;
   /** Its card on the Stats tab. */
@@ -23,18 +32,57 @@ type Props = {
 };
 
 /**
- * One Pokémon as it was read, to check against the game: each tab's card
- * from the screenshot, above the values read from it, laid out the way the
- * card shows them.
+ * Every nature the game can show: "Neutral" for the five neutral natures,
+ * which look the same in the game, then the 20 others, e.g. "Jolly (+Spe /
+ * -SpA)". Each option's value is its raised and lowered stats, as JSON.
+ */
+const NATURE_OPTIONS = [
+  null,
+  ...NATURES.filter((n) => n.plus !== n.minus).map(({ plus, minus }) => ({
+    plus,
+    minus,
+  })),
+].map((alignment: StatAlignment) => ({
+  value: JSON.stringify(alignment),
+  label: formatAlignment(alignment),
+}));
+
+/**
+ * One Pokémon, to check against the game and correct: each tab's card from
+ * the screenshot, above the values read from it, laid out the way the card
+ * shows them. Every value can be edited.
  */
 export function PokemonCard({
   position,
   pokemon,
+  onChange,
   movesCrop,
   statsCrop,
 }: Props) {
   const { alignment } = pokemon;
   const name = `Pokémon ${position}`;
+  const natureLabel = useId();
+
+  const set = (change: Partial<PokemonSet>) =>
+    onChange({ ...pokemon, ...change });
+
+  // The game shows four move slots, so there are always four inputs; an
+  // empty one is a slot with no move.
+  const setMove = (slot: number, move: string) =>
+    set({
+      moves: [0, 1, 2, 3].map((i) =>
+        i === slot ? move : (pokemon.moves[i] ?? ''),
+      ),
+    });
+
+  const setStat = (stat: StatKey, text: string) => {
+    // Digits only: stats are whole numbers, at most three digits.
+    const digits = text.replace(/\D/g, '').slice(0, 3);
+
+    set({
+      stats: { ...pokemon.stats, [stat]: digits ? Number(digits) : null },
+    });
+  };
 
   return (
     <article className={styles.card} aria-label={name}>
@@ -50,81 +98,94 @@ export function PokemonCard({
       {/* Like the Moves & More card: details on the left, moves on the
           right. */}
       <div className={styles.moves}>
-        <dl className={styles.details}>
-          <Row label="Ability" value={pokemon.ability} />
-          <Row label="Held item" value={pokemon.item} />
-        </dl>
-        <dl className={styles.details}>
-          <div className={styles.row}>
-            <dt>Moves</dt>
-            <dd>
-              <ol className={styles.moveList}>
-                {[0, 1, 2, 3].map((i) => (
-                  <li key={i}>
-                    <Value value={pokemon.moves[i]} />
-                  </li>
-                ))}
-              </ol>
-            </dd>
-          </div>
-        </dl>
+        <div className={styles.column}>
+          <TextField
+            label="Species"
+            value={pokemon.species}
+            onChange={(species) => set({ species })}
+          />
+          <TextField
+            label="Ability"
+            value={pokemon.ability}
+            onChange={(ability) => set({ ability })}
+          />
+          <TextField
+            label="Held item"
+            value={pokemon.item}
+            onChange={(item) => set({ item })}
+          />
+        </div>
+        <fieldset className={styles.column}>
+          <legend className={styles.label}>Moves</legend>
+          {[0, 1, 2, 3].map((slot) => (
+            <input
+              key={slot}
+              className={styles.input}
+              aria-label={`Move ${slot + 1}`}
+              value={pokemon.moves[slot] ?? ''}
+              onChange={(event) => setMove(slot, event.target.value)}
+            />
+          ))}
+        </fieldset>
       </div>
 
       {statsCrop && <Crop {...statsCrop} label={`${name} on the Stats tab`} />}
 
       {/* Like the Stats card: HP, Attack, and Defense on the left; Sp. Atk,
           Sp. Def, and Speed on the right. */}
-      <dl className={styles.stats}>
+      <div className={styles.stats}>
         {STAT_KEYS.map((stat) => (
-          <div key={stat} className={styles.stat}>
-            <dt>
+          <label key={stat} className={styles.stat}>
+            <span className={styles.statName}>
               {shortStatName(stat)}
               {alignment?.plus === stat && <StatMarker direction="up" />}
               {alignment?.minus === stat && <StatMarker direction="down" />}
-            </dt>
-            <dd>
-              <Value value={statValue(pokemon, stat)} />
-            </dd>
-          </div>
+            </span>
+            <input
+              className={`${styles.input} ${styles.number}`}
+              inputMode="numeric"
+              value={pokemon.stats[stat] ?? ''}
+              onChange={(event) => setStat(stat, event.target.value)}
+            />
+          </label>
         ))}
-      </dl>
+      </div>
 
-      <dl className={styles.details}>
-        {/* The five neutral natures look the same in the game, so they
-            can't be told apart. */}
-        <Row
-          label="Nature"
-          value={natureFromAlignment(alignment) ?? 'Neutral'}
+      <div className={styles.field}>
+        <span id={natureLabel} className={styles.label}>
+          Nature
+        </span>
+        <Combobox
+          aria-labelledby={natureLabel}
+          options={NATURE_OPTIONS}
+          value={JSON.stringify(alignment)}
+          onChange={(value) =>
+            set({ alignment: JSON.parse(value) as StatAlignment })
+          }
         />
-      </dl>
+      </div>
     </article>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+/** A labeled text input, the label above it. */
+function TextField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
   return (
-    <div className={styles.row}>
-      <dt>{label}</dt>
-      <dd>
-        <Value value={value} />
-      </dd>
-    </div>
+    <label className={styles.field}>
+      <span className={styles.label}>{label}</span>
+      <input
+        className={styles.input}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    </label>
   );
-}
-
-/** A value as read, or a dash where nothing was read. */
-function Value({ value }: { value: string | undefined }) {
-  return value ? (
-    <>{value}</>
-  ) : (
-    <span className={styles.blank} aria-label="Blank">
-      —
-    </span>
-  );
-}
-
-function statValue(pokemon: PokemonSet, stat: StatKey): string | undefined {
-  const value = pokemon.stats[stat];
-
-  return value === null ? undefined : String(value);
 }

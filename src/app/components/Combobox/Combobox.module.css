@@ -1,0 +1,50 @@
+/* The list hangs below the input, over whatever follows. */
+.combobox {
+  position: relative;
+  min-width: 0;
+}
+
+.input {
+  width: 100%;
+}
+
+.list {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.15);
+}
+
+.option,
+.empty {
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.option {
+  cursor: pointer;
+}
+
+/* The highlighted match, which Enter chooses. */
+.active {
+  background: var(--color-accent-soft);
+}
+
+/* The option already chosen. */
+.option[aria-selected='true'] {
+  font-weight: 600;
+}
+
+.empty {
+  color: var(--color-muted);
+}

@@ -12,26 +12,6 @@
   margin: 0;
 }
 
-.trainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 32px;
-  margin: calc(var(--gap) * 1.5) 0 var(--gap);
-}
-
-.trainer div {
-  display: flex;
-  gap: 8px;
-}
-
-.trainer dt {
-  color: var(--color-muted);
-}
-
-.trainer dd {
-  margin: 0;
-}
-
 /* Two Pokémon to a row, like the game's grid; one on narrow screens. */
 .cards {
   display: grid;
