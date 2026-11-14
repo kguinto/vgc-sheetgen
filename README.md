@@ -36,15 +36,19 @@ read correctly when they show the team's name.
    thumbnail to see it full size.
 2. **Review.** The screenshots are read while a progress bar shows how far
    it's got. Then each Pokémon is shown under its cards from both
-   screenshots, so you can check every value against the game. Any value
-   can be corrected, and the nature is picked from a list you can type to
-   filter. "Your details" holds the rest of the form's header (player name,
+   screenshots, so you can check every value against the game, including
+   each stat's Stat Points (SP). Any value can be corrected, and the nature
+   is picked from a list you can type to filter. If a Pokémon's SP break
+   the game's rules (0 to 32 per stat, 66 in all), its card says what to
+   check. "Your details" holds the rest of the form's header (player name,
    Battle Team, Switch profile name, age division, Player ID, date of birth,
    and Support ID); all of it is optional.
 3. **Teamsheet.** The form is filled in and previewed. Download it, or open
    it in a new tab to print. Print both pages: the first is for tournament
    staff, the second for your opponents, without your stats or personal
-   details. Anything left blank can be written in by hand.
+   details. Anything left blank can be written in by hand. The **Showdown**
+   tab has the team as Pokémon Showdown text, with the SP on each
+   Pokémon's "EVs" line, to copy into Showdown's teambuilder.
 
 Check the values on the Review step before printing: text recognition can
 misread a value, e.g. "Ice Beam" as "fce Beam".
@@ -119,7 +123,7 @@ text recognizer (Tesseract) starts up. While it reads, a progress line shows how
 many fields have been read so far.
 
 The team is printed in a format close to Pokémon Showdown's, but with the
-stat values shown in game rather than EVs:
+stat values shown in game and each stat's Stat Points (SP):
 
 ```text
 Trainer: Louie
@@ -129,6 +133,7 @@ Tyranitar @ Tyranitarite
 Ability: Sand Stream
 Nature: Jolly (+Spe / -SpA)
 Stats: HP 175 / Atk 175 / Def 130 / SpA 103 / SpD 133 / Spe 124
+SP: HP 0 / Atk 21 / Def 0 / SpA 0 / SpD 13 / Spe 32
 - Protect
 - Rock Slide
 - Knock Off
@@ -137,9 +142,11 @@ Stats: HP 175 / Atk 175 / Def 130 / SpA 103 / SpD 133 / Spe 124
 ...
 ```
 
-A stat that couldn't be read is shown as `?`. Check the printed team
+A number that couldn't be read is shown as `?`. Check the printed team
 against your screenshots before you use it: text recognition can misread a
-value. The script can't correct values; the web app's Review step can.
+value. If a Pokémon's SP break the game's rules (0 to 32 per stat, 66 in
+all), the script lists it after the team, since one of its numbers must
+have been misread. The script can't correct values; the web app's Review step can.
 
 ### 3. Save the team list PDF
 
