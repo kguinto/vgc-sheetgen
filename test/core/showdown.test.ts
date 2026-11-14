@@ -25,6 +25,7 @@ describe('formatShowdown', () => {
         'Tyranitar @ Tyranitarite',
         'Ability: Sand Stream',
         'Level: 50',
+        'EVs: 21 Atk / 13 SpD / 32 Spe',
         'Jolly Nature',
         '- Protect',
         '- Rock Slide',
@@ -51,14 +52,32 @@ describe('formatShowdown', () => {
           ability: ' ',
           alignment: null,
           moves: ['Protect', '', 'Knock Off', ''],
+          points: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
         }),
       ),
     ).toBe(['Tyranitar', 'Level: 50', '- Protect', '- Knock Off'].join('\n'));
   });
 
-  it('leaves out the stats and the trainer', () => {
+  it("writes SP in Showdown's order, leaving out those with none", () => {
+    const raichu = {
+      ...tyranitar,
+      points: { hp: 26, atk: 0, def: 14, spa: 0, spd: 0, spe: 26 },
+    };
+
+    expect(formatShowdown(team(raichu))).toContain(
+      'Level: 50\nEVs: 26 HP / 14 Def / 26 Spe\nJolly Nature',
+    );
+  });
+
+  it('leaves out SP that were not read', () => {
+    const unread = { ...tyranitar, points: { ...tyranitar.points, spd: null } };
+
+    expect(formatShowdown(team(unread))).toContain('EVs: 21 Atk / 32 Spe');
+  });
+
+  it("leaves out the stats' totals and the trainer", () => {
     const text = formatShowdown(team(tyranitar));
 
-    expect(text).not.toMatch(/175|Stats|EVs|Louie|0A0HABQMPR/);
+    expect(text).not.toMatch(/175|Stats|Louie|0A0HABQMPR/);
   });
 });

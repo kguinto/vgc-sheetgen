@@ -33,8 +33,8 @@ export function ShowdownExport({ team }: { team: Team }) {
     <div className={styles.export}>
       <p className={styles.hint}>
         In Pokémon Showdown's teambuilder, choose "Import from text" and paste
-        this. Stats aren't included: Showdown uses EVs and IVs, which the
-        screenshots don't show.
+        this. The Stat Points (SP) are on each Pokémon's "EVs" line, as Showdown
+        writes them for Pokémon Champions.
       </p>
 
       {/* Read out when it changes, for screen readers. On screen, copying
