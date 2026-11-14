@@ -50,32 +50,98 @@
 }
 
 /* Like the Stats card: HP, Atk, and Def on the left; SpA, SpD, and Spe on
-   the right. */
+   the right, each column under a small heading. */
 .stats {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  grid-template-rows: repeat(3, auto);
+  grid-template-rows: repeat(4, auto);
   grid-auto-flow: column;
   gap: 6px 24px;
+}
+
+/* On phones, the two columns don't fit side by side: all six stats go in
+   one column, under one heading. */
+@media (max-width: 520px) {
+  .stats {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-auto-flow: row;
+  }
+
+  .statHeading.secondHeading {
+    display: none;
+  }
+}
+
+/* "Stat" over the totals, "SP" over the Stat Points. */
+.statHeading {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+}
+
+.statHeading span {
+  width: 4ch;
+  box-sizing: content-box;
+  padding: 0 9px;
+  text-align: right;
+}
+
+.statHeading span:last-child {
+  width: 2ch;
 }
 
 .stat {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
 }
 
 .statName {
+  flex: 1;
   color: var(--color-muted);
   white-space: nowrap;
 }
 
-/* Stats: right-aligned, with every digit the same width, so they line up. */
+/* Numbers: right-aligned, with every digit the same width, so they line
+   up. */
 .number {
-  width: 5ch;
+  width: 4ch;
   flex: none;
   box-sizing: content-box;
   font-variant-numeric: tabular-nums;
   text-align: right;
+}
+
+.number.points {
+  width: 2ch;
+}
+
+.pointsTotal {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* SP that break the game's rules: shown so they stand out. */
+.pointsWarning {
+  padding: 8px 12px;
+  border: 1px solid var(--color-text);
+  border-radius: 6px;
+  background: var(--color-accent-soft);
+  font-size: 0.9rem;
+}
+
+.pointsWarning p,
+.pointsWarning ul {
+  margin: 0;
+}
+
+.pointsWarning ul {
+  margin-top: 2px;
+  padding-left: 1.25em;
 }

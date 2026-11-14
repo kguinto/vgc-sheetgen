@@ -11,6 +11,12 @@ import {
   type StatAlignment,
   type StatKey,
 } from '../../../core/team/types';
+import {
+  checkPoints,
+  describePointsProblem,
+  TOTAL_STAT_POINTS,
+  totalPoints,
+} from '../../../core/team/points';
 import { Combobox } from '../Combobox/Combobox';
 import { Crop } from '../Crop/Crop';
 import { StatMarker } from '../StatMarker/StatMarker';
@@ -75,14 +81,22 @@ export function PokemonCard({
       ),
     });
 
-  const setStat = (stat: StatKey, text: string) => {
-    // Digits only: stats are whole numbers, at most three digits.
-    const digits = text.replace(/\D/g, '').slice(0, 3);
+  // Digits only, as whole numbers: up to three for a stat's total, two for
+  // its SP. Clearing one leaves it blank.
+  const number = (text: string, maxDigits: number) => {
+    const digits = text.replace(/\D/g, '').slice(0, maxDigits);
 
-    set({
-      stats: { ...pokemon.stats, [stat]: digits ? Number(digits) : null },
-    });
+    return digits ? Number(digits) : null;
   };
+
+  const setStat = (stat: StatKey, text: string) =>
+    set({ stats: { ...pokemon.stats, [stat]: number(text, 3) } });
+
+  const setPoints = (stat: StatKey, text: string) =>
+    set({ points: { ...pokemon.points, [stat]: number(text, 2) } });
+
+  // SP that break the game's rules must have been misread (or mistyped).
+  const pointsProblems = checkPoints(pokemon.points);
 
   return (
     <article className={styles.card} aria-label={name}>
@@ -132,24 +146,61 @@ export function PokemonCard({
       {statsCrop && <Crop {...statsCrop} label={`${name} on the Stats tab`} />}
 
       {/* Like the Stats card: HP, Attack, and Defense on the left; Sp. Atk,
-          Sp. Def, and Speed on the right. */}
+          Sp. Def, and Speed on the right. Each row is the stat's name, its
+          total, and its Stat Points (SP), as the game shows them. */}
       <div className={styles.stats}>
-        {STAT_KEYS.map((stat) => (
-          <label key={stat} className={styles.stat}>
-            <span className={styles.statName}>
-              {shortStatName(stat)}
-              {alignment?.plus === stat && <StatMarker direction="up" />}
-              {alignment?.minus === stat && <StatMarker direction="down" />}
-            </span>
-            <input
-              className={`${styles.input} ${styles.number}`}
-              inputMode="numeric"
-              value={pokemon.stats[stat] ?? ''}
-              onChange={(event) => setStat(stat, event.target.value)}
-            />
-          </label>
-        ))}
+        {[STAT_KEYS.slice(0, 3), STAT_KEYS.slice(3)].map((column, i) => [
+          <div
+            key={`${column[0]}-heading`}
+            className={`${styles.statHeading}${i > 0 ? ` ${styles.secondHeading}` : ''}`}
+          >
+            <span>Stat</span>
+            <span>SP</span>
+          </div>,
+          ...column.map((stat) => (
+            <div key={stat} className={styles.stat}>
+              <span className={styles.statName}>
+                {shortStatName(stat)}
+                {alignment?.plus === stat && <StatMarker direction="up" />}
+                {alignment?.minus === stat && <StatMarker direction="down" />}
+              </span>
+              <input
+                className={`${styles.input} ${styles.number}`}
+                aria-label={shortStatName(stat)}
+                inputMode="numeric"
+                value={pokemon.stats[stat] ?? ''}
+                onChange={(event) => setStat(stat, event.target.value)}
+              />
+              <input
+                className={`${styles.input} ${styles.number} ${styles.points}`}
+                aria-label={`${shortStatName(stat)} SP`}
+                inputMode="numeric"
+                value={pokemon.points[stat] ?? ''}
+                onChange={(event) => setPoints(stat, event.target.value)}
+              />
+            </div>
+          )),
+        ])}
       </div>
+
+      {/* The SP total, or what's wrong with the SP, to check against the
+          card above. Read out when it changes. */}
+      {pointsProblems.length === 0 ? (
+        <p className={styles.pointsTotal} role="status">
+          SP: {totalPoints(pokemon.points)} / {TOTAL_STAT_POINTS}
+        </p>
+      ) : (
+        <div className={styles.pointsWarning} role="status">
+          <p>Check the SP against the card above:</p>
+          <ul>
+            {pointsProblems.map((problem) => (
+              <li key={describePointsProblem(problem)}>
+                {describePointsProblem(problem)}.
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className={styles.field}>
         <span id={natureLabel} className={styles.label}>
