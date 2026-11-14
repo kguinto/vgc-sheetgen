@@ -22,6 +22,12 @@ const LEFT_VALUE = { x: 215, w: 58 };
 const RIGHT_VALUE = { x: 565, w: 60 };
 const ROW_H = 38;
 
+// Each stat's Stat Points, after its bar: up to two digits, which sit at
+// x 323–347 (left) and 674–698 (right). The boxes start just after the bars
+// end, so they don't take them in.
+const LEFT_POINTS = { x: 319, w: 34 };
+const RIGHT_POINTS = { x: 670, w: 34 };
+
 // Where each stat's name is, which the nature's ⇑ or ⇓ follows.
 const LEFT_NAME = { x: 90, w: 130 };
 const RIGHT_NAME = { x: 440, w: 135 };
@@ -60,6 +66,14 @@ export const console1080: LayoutProfile = {
       spa: { ...RIGHT_VALUE, y: STAT_ROWS[0]!, h: ROW_H },
       spd: { ...RIGHT_VALUE, y: STAT_ROWS[1]!, h: ROW_H },
       spe: { ...RIGHT_VALUE, y: STAT_ROWS[2]!, h: ROW_H },
+    },
+    points: {
+      hp: { ...LEFT_POINTS, y: STAT_ROWS[0]!, h: ROW_H },
+      atk: { ...LEFT_POINTS, y: STAT_ROWS[1]!, h: ROW_H },
+      def: { ...LEFT_POINTS, y: STAT_ROWS[2]!, h: ROW_H },
+      spa: { ...RIGHT_POINTS, y: STAT_ROWS[0]!, h: ROW_H },
+      spd: { ...RIGHT_POINTS, y: STAT_ROWS[1]!, h: ROW_H },
+      spe: { ...RIGHT_POINTS, y: STAT_ROWS[2]!, h: ROW_H },
     },
     arrows: {
       atk: { ...LEFT_NAME, y: STAT_ROWS[1]!, h: ROW_H },

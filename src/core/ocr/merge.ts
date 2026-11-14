@@ -4,6 +4,7 @@ import {
   type AlignableStatKey,
   type PokemonSet,
   type StatAlignment,
+  type Stats,
   type Team,
 } from '../team/types';
 import type { FieldResult } from './read';
@@ -27,6 +28,19 @@ export function mergeTeam(moves: FieldResult[], stats: FieldResult[]): Team {
   const text = (key: string) =>
     String(movesRead.get(key)?.value ?? statsRead.get(key)?.value ?? '');
 
+  /**
+   * A number per stat from the Stats screen, e.g. the totals under
+   * `slot.0.stats`, or `null` for a stat that wasn't read.
+   */
+  const numbers = (prefix: string) =>
+    Object.fromEntries(
+      STAT_KEYS.map((stat) => {
+        const value = statsRead.get(`${prefix}.${stat}`)?.value;
+
+        return [stat, typeof value === 'number' ? value : null];
+      }),
+    ) as Stats;
+
   return {
     teamId: text('teamId'),
     trainerName: text('trainerName'),
@@ -38,13 +52,8 @@ export function mergeTeam(moves: FieldResult[], stats: FieldResult[]): Team {
       moves: [0, 1, 2, 3]
         .map((i) => text(`slot.${card}.moves.${i}`))
         .filter(Boolean),
-      stats: Object.fromEntries(
-        STAT_KEYS.map((stat) => {
-          const value = statsRead.get(`slot.${card}.stats.${stat}`)?.value;
-
-          return [stat, typeof value === 'number' ? value : null];
-        }),
-      ) as PokemonSet['stats'],
+      stats: numbers(`slot.${card}.stats`),
+      points: numbers(`slot.${card}.points`),
       alignment: alignmentOf(
         ALIGNABLE_STAT_KEYS.map((stat) => ({
           stat,

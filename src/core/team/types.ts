@@ -34,7 +34,13 @@ export type PokemonSet = {
   item: string;
   /** Up to four. */
   moves: string[];
+  /** Each stat's total, as the game shows it. */
   stats: Stats;
+  /**
+   * Each stat's Stat Points (SP), the points the player put into it: 0 to
+   * 32 per stat, 66 in all (see `checkPoints`).
+   */
+  points: Stats;
   alignment: StatAlignment;
 };
 

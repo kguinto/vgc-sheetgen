@@ -25,6 +25,7 @@ import path from 'node:path';
 import { readTeam } from '../src/core/ocr/pipeline';
 import { formatScreenshotProblem } from '../src/core/ocr/screenshot-problems';
 import { formatTeam } from '../src/core/team/format';
+import { checkPoints, describePointsProblem } from '../src/core/team/points';
 import { renderTeamSheet } from '../src/core/teamsheet/render';
 import { checkOutputPath, parseArguments, readFiles } from '../src/node/cli';
 import { saveFieldCrops } from '../src/node/debug';
@@ -127,7 +128,24 @@ if (problems.length > 0) {
 // Step 5: Show the team. With --debug, every field's reading was printed
 // above too.
 // TODO: Mark any values that might have been misread.
-if (team) logger.info(formatTeam(team));
+if (team) {
+  logger.info(formatTeam(team));
+
+  // Stat Points that break the game's rules (0–32 per stat, 66 in all)
+  // must have been misread somewhere, so say which Pokémon to check.
+  const pointsProblems = team.pokemon.flatMap((pokemon, i) =>
+    checkPoints(pokemon.points).map(
+      (problem) =>
+        `Pokémon ${i + 1} (${pokemon.species || '?'}): ${describePointsProblem(problem)}.`,
+    ),
+  );
+
+  if (pointsProblems.length > 0) {
+    logger.error(
+      `\nCheck these against the screenshots:\n${pointsProblems.join('\n')}`,
+    );
+  }
+}
 
 // Step 6: With -o, fill in the official team list form and save it. Point
 // out anything to check on the printed form, such as a name the form's

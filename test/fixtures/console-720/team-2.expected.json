@@ -15,6 +15,14 @@
         "spd": 100,
         "spe": 178
       },
+      "points": {
+        "hp": 2,
+        "atk": 32,
+        "def": 0,
+        "spa": 0,
+        "spd": 0,
+        "spe": 32
+      },
       "alignment": { "plus": "spe", "minus": "spa" }
     },
     {
@@ -29,6 +37,14 @@
         "spa": 72,
         "spd": 92,
         "spe": 137
+      },
+      "points": {
+        "hp": 0,
+        "atk": 32,
+        "def": 0,
+        "spa": 0,
+        "spd": 2,
+        "spe": 32
       },
       "alignment": { "plus": "atk", "minus": "spa" }
     },
@@ -45,6 +61,14 @@
         "spd": 125,
         "spe": 112
       },
+      "points": {
+        "hp": 0,
+        "atk": 32,
+        "def": 0,
+        "spa": 0,
+        "spd": 9,
+        "spe": 25
+      },
       "alignment": { "plus": "spd", "minus": "spa" }
     },
     {
@@ -59,6 +83,14 @@
         "spa": 150,
         "spd": 90,
         "spe": 36
+      },
+      "points": {
+        "hp": 2,
+        "atk": 0,
+        "def": 32,
+        "spa": 32,
+        "spd": 0,
+        "spe": 0
       },
       "alignment": { "plus": "spa", "minus": "spe" }
     },
@@ -75,6 +107,14 @@
         "spd": 132,
         "spe": 154
       },
+      "points": {
+        "hp": 2,
+        "atk": 0,
+        "def": 32,
+        "spa": 0,
+        "spd": 32,
+        "spe": 0
+      },
       "alignment": { "plus": "spe", "minus": "spa" }
     },
     {
@@ -89,6 +129,14 @@
         "spa": 194,
         "spd": 110,
         "spe": 150
+      },
+      "points": {
+        "hp": 0,
+        "atk": 0,
+        "def": 2,
+        "spa": 32,
+        "spd": 0,
+        "spe": 32
       },
       "alignment": { "plus": "spa", "minus": "atk" }
     }

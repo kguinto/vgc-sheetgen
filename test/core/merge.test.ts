@@ -9,7 +9,7 @@ function reads(values: Record<string, string | number | null>): FieldResult[] {
     key,
     kind: (key.includes('.arrows.')
       ? 'arrow'
-      : key.includes('.stats.')
+      : key.includes('.stats.') || key.includes('.points.')
         ? 'digits'
         : 'name') as FieldKind,
     rect: { x: 0, y: 0, w: 1, h: 1 },
@@ -41,6 +41,12 @@ const stats = reads({
   'slot.0.stats.spa': 113,
   'slot.0.stats.spd': 127,
   'slot.0.stats.spe': 136,
+  'slot.0.points.hp': 2,
+  'slot.0.points.atk': 0,
+  'slot.0.points.def': 16,
+  'slot.0.points.spa': 16,
+  'slot.0.points.spd': 32,
+  'slot.0.points.spe': null,
   'slot.0.arrows.atk': 'down',
   'slot.0.arrows.def': null,
   'slot.0.arrows.spa': null,
@@ -61,6 +67,8 @@ describe('mergeTeam', () => {
           // Blank move slots are dropped.
           moves: ['Moonblast', 'Tailwind'],
           stats: { hp: 137, atk: 78, def: 133, spa: 113, spd: 127, spe: 136 },
+          // SP, with one that wasn't read.
+          points: { hp: 2, atk: 0, def: 16, spa: 16, spd: 32, spe: null },
           // ⇑ Speed, ⇓ Attack: Timid.
           alignment: { plus: 'spe', minus: 'atk' },
         },
@@ -97,5 +105,6 @@ describe('mergeTeam', () => {
       'Milotic',
     ]);
     expect(team.pokemon[1]?.stats.hp).toBeNull();
+    expect(team.pokemon[1]?.points.hp).toBeNull();
   });
 });

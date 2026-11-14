@@ -1,6 +1,7 @@
-// The Battle Team's "Stats" tab: each Pokémon's species and its six stat
-// numbers. The Moves & More tab (moves.ts) has the same header and grid of
-// six cards, so parts of this file mirror that one.
+// The Battle Team's "Stats" tab: each Pokémon's species, its six stat
+// numbers, and the Stat Points (SP) behind each. The Moves & More tab
+// (moves.ts) has the same header and grid of six cards, so parts of this
+// file mirror that one.
 
 import { ALIGNABLE_STAT_KEYS, STAT_KEYS } from '../../team/types';
 import type { Rect } from '../image';
@@ -47,6 +48,15 @@ export const statsScreen: ScreenDefinition = {
           field(key('species'), at(rects.species), 'name', true),
           ...STAT_KEYS.map((stat) =>
             field(key(`stats.${stat}`), at(rects.values[stat]), 'digits', true),
+          ),
+          // Each stat's Stat Points. The game always shows a number, even 0.
+          ...STAT_KEYS.map((stat) =>
+            field(
+              key(`points.${stat}`),
+              at(rects.points[stat]),
+              'digits',
+              true,
+            ),
           ),
           // The nature's arrows. Most stats have none, so none is required.
           ...ALIGNABLE_STAT_KEYS.map((stat) =>

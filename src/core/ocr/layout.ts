@@ -62,6 +62,10 @@ export type LayoutProfile = {
     /** The number shown for each stat. */
     values: Record<StatKey, Rect>;
     /**
+     * Each stat's Stat Points (SP): the number after its bar, from 0 to 32.
+     */
+    points: Record<StatKey, Rect>;
+    /**
      * Where the nature's ⇑ or ⇓ can appear: just after each stat's name.
      * HP can't be raised or lowered by a nature, so it has none.
      */

@@ -29,6 +29,8 @@ type ExpectedTeam = {
     item: string;
     moves: string[];
     stats: Record<string, number>;
+    /** Each stat's Stat Points. */
+    points: Record<string, number>;
     /** The stats the nature raises and lowers, or null for a neutral one. */
     alignment: { plus: string; minus: string } | null;
   }[];
@@ -118,6 +120,7 @@ function expectedValues(team: ExpectedTeam): Map<string, string | number> {
 
     for (const stat of STAT_KEYS) {
       values.set(`${slot}.stats.${stat}`, p.stats[stat]!);
+      values.set(`${slot}.points.${stat}`, p.points[stat]!);
     }
 
     // Each stat's arrow: up for the one the nature raises, down for the one

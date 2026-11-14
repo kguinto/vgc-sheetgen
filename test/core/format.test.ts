@@ -8,6 +8,7 @@ const whimsicott: PokemonSet = {
   item: 'Sitrus Berry',
   moves: ['Protect', 'Moonblast', 'Giga Drain', 'Tailwind'],
   stats: { hp: 137, atk: 78, def: 133, spa: 113, spd: 127, spe: 136 },
+  points: { hp: 2, atk: 0, def: 16, spa: 16, spd: 32, spe: 0 },
   alignment: { plus: 'spe', minus: 'atk' },
 };
 
@@ -28,6 +29,7 @@ describe('formatTeam', () => {
         'Ability: Prankster',
         'Nature: Timid (+Spe / -Atk)',
         'Stats: HP 137 / Atk 78 / Def 133 / SpA 113 / SpD 127 / Spe 136',
+        'SP: HP 2 / Atk 0 / Def 16 / SpA 16 / SpD 32 / Spe 0',
         '- Protect',
         '- Moonblast',
         '- Giga Drain',

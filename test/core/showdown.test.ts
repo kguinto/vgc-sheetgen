@@ -8,6 +8,7 @@ const tyranitar: PokemonSet = {
   item: 'Tyranitarite',
   moves: ['Protect', 'Rock Slide', 'Knock Off', 'Low Kick'],
   stats: { hp: 175, atk: 175, def: 130, spa: 103, spd: 133, spe: 124 },
+  points: { hp: 0, atk: 21, def: 0, spa: 0, spd: 13, spe: 32 },
   alignment: { plus: 'spe', minus: 'spa' },
 };
 
