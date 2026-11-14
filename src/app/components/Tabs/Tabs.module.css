@@ -1,0 +1,29 @@
+/* A row of tabs on a line, the chosen one underlined. */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: var(--gap);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Plain text rather than the usual pill-shaped button. */
+.tab {
+  margin-bottom: -1px;
+  padding: 8px 14px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: none;
+  color: var(--color-muted);
+}
+
+.tab:hover:not(:disabled) {
+  background: none;
+  color: var(--color-text);
+}
+
+.tab[aria-selected='true'] {
+  border-bottom-color: var(--color-text);
+  color: var(--color-text);
+  font-weight: 600;
+}

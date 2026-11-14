@@ -1,3 +1,10 @@
+/* What to do with this tab's result, above it. */
+.hint {
+  margin: 0 0 12px;
+  color: var(--color-muted);
+  font-size: 0.95rem;
+}
+
 .message {
   margin: 16px 0;
 }
